@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e18" id="themeMeta">
+<title>__STORE_NAME__</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0b0e18;--card:#141829;--card2:#1b2135;--line:#232a40;--text:#eef1f8;--muted:#8d97b3;--accent:#4f7cff;--accent2:#3b5fe0;--ok:#34c58a;--warn:#e9a33a;--bad:#f06a6a;--info:#62a8f5;--r:18px;color-scheme:dark}
+html[data-theme="light"]{--bg:#f3f5fb;--card:#ffffff;--card2:#f0f3fa;--line:#e3e8f2;--text:#131a2e;--muted:#67708a;color-scheme:light}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:Vazirmatn,Tahoma,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.7;overflow:hidden;font-variant-numeric:tabular-nums}
+button,input,textarea{font:inherit;color:inherit;background:none;border:0}
+button{cursor:pointer}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.ltr{direction:ltr;unicode-bidi:isolate;text-align:left}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 8px}
+.brand{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
+.brand img{width:38px;height:38px;border-radius:50%;flex:0 0 auto}
+.brand b{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line)}
+main{flex:1;overflow-y:auto;padding:6px 18px calc(100px + env(safe-area-inset-bottom,0px));scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.view{display:none}
+.view.on{display:block}
+.sec{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 10px;font-size:14px;font-weight:700}
+.sec a{color:var(--accent);font-size:13px;font-weight:600;cursor:pointer}
+.hero{position:relative;overflow:hidden;border-radius:var(--r);padding:22px 20px;color:#fff;background:linear-gradient(135deg,#4f5bff 0%,#3b7cff 55%,#2fb3ff 100%);box-shadow:0 18px 34px -18px rgba(60,100,255,.7)}
+.hero::after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.1);left:-70px;bottom:-110px}
+.hero .lbl{font-size:13px;opacity:.9;position:relative;z-index:1}
+.hero .amt{display:flex;align-items:baseline;gap:6px;margin:6px 0 18px;position:relative;z-index:1}
+.hero .amt b{font-size:32px;font-weight:700;letter-spacing:.3px}
+.hero .amt span{font-size:14px;opacity:.9}
+.hero .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative;z-index:1}
+.hbtn{height:44px;border-radius:13px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+.hbtn.light{background:#fff;color:#2440a8}
+.hbtn.glass{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 10px;text-align:center}
+.stat svg{width:20px;height:20px;color:var(--accent);margin:0 auto 6px;display:block}
+.stat b{display:block;font-size:18px;font-weight:700}
+.stat span{color:var(--muted);font-size:12px}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.qa{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 4px 12px;text-align:center;font-size:12px;font-weight:600}
+.qa svg{color:var(--accent);margin:0 auto 7px;display:block}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;width:100%;text-align:right}
+.ico{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--card2);color:var(--accent);flex:0 0 auto}
+.txt{flex:1;min-width:0}
+.txt .t{display:block;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txt .s{display:block;color:var(--muted);font-size:12px}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:0 0 auto}
+.amount{font-weight:700;font-size:14px;white-space:nowrap}
+.amount.pos{color:var(--ok)}
+.tag{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.tag.ok{background:rgba(52,197,138,.15);color:var(--ok)}
+.tag.warn{background:rgba(233,163,58,.16);color:var(--warn)}
+.tag.bad{background:rgba(240,106,106,.15);color:var(--bad)}
+.tag.info{background:rgba(98,168,245,.16);color:var(--info)}
+.tag.mute{background:var(--card2);color:var(--muted)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:14px}
+.seg button{padding:9px 4px;border-radius:10px;color:var(--muted);font-weight:700;font-size:13px}
+.seg button.on{background:var(--accent);color:#fff}
+.prod{display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px;width:100%;text-align:right}
+.prod .nm{font-weight:700;font-size:15px;line-height:1.6}
+.prod .meta{color:var(--muted);font-size:12.5px}
+.prod .foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
+.prod .price{font-weight:800;font-size:17px}
+.prod .price small{font-size:12px;color:var(--muted);font-weight:500;margin-right:4px}
+.prod .go{color:var(--accent);font-weight:700;font-size:13px}
+.empty{text-align:center;color:var(--muted);padding:34px 12px;font-size:13px}
+.empty svg{width:32px;height:32px;margin:0 auto 10px;display:block;opacity:.7}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.profile{display:flex;align-items:center;gap:14px;padding:18px}
+.avatar{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:var(--card2);border:1px solid var(--line);flex:0 0 auto;color:var(--muted)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.profile .nm{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile .sub{color:var(--muted);font-size:13px}
+.row{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;text-align:right}
+.row+.row{border-top:1px solid var(--line)}
+.row .lbl{flex:1;font-weight:600}
+.row .val{color:var(--muted);font-size:13px;direction:ltr;unicode-bidi:isolate}
+.row .chev{color:var(--muted);width:18px;height:18px}
+.copy{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--card2);border-radius:12px;margin:0 16px 16px;color:var(--muted);font-size:12px;direction:ltr;text-align:left;word-break:break-all;width:calc(100% - 32px)}
+.copy span{flex:1}
+.switch{width:42px;height:25px;border-radius:999px;background:var(--line);position:relative;flex:0 0 auto;transition:.2s}
+.switch::after{content:"";position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.2s}
+html[data-theme="dark"] .switch{background:var(--accent)}
+html[data-theme="dark"] .switch::after{right:20px}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--card);border-top:1px solid var(--line)}
+nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--muted);font-size:11px;font-weight:600}
+nav button.on{color:var(--accent)}
+nav button svg{width:21px;height:21px}
+.scrim{position:fixed;inset:0;background:rgba(4,6,14,.6);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.scrim.on{display:flex}
+.sheet{width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:var(--card);border-radius:24px 24px 0 0;padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 22px);animation:up .22s ease}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+.grab{width:38px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 14px}
+.sheet h3{font-size:17px;font-weight:700}
+.sheet .sub{color:var(--muted);font-size:13px;margin:4px 0 16px}
+.kvs{background:var(--card2);border-radius:var(--r);padding:4px 14px;margin-bottom:14px}
+.kv{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.kv:last-child{border-bottom:0}
+.kv span{color:var(--muted)}
+.kv b{font-weight:700}
+.field{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px 15px;outline:none;margin-bottom:12px;font-size:15px}
+.field:focus{border-color:var(--accent)}
+textarea.field{min-height:120px;resize:vertical}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;font-weight:700;font-size:15px;background:var(--card2);border:1px solid var(--line);width:100%}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.btn:disabled{opacity:.45}
+.btn+.btn{margin-top:10px}
+.file{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;border:1px dashed var(--line);color:var(--muted);cursor:pointer;margin-bottom:12px;font-size:13.5px}
+.note{padding:12px 14px;border-radius:14px;background:rgba(233,163,58,.12);color:var(--warn);font-size:13px;margin-bottom:12px}
+details.faq{padding:13px 16px}
+details.faq+details.faq{border-top:1px solid var(--line)}
+details.faq summary{font-weight:700;cursor:pointer;list-style:none}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq p{color:var(--muted);font-size:13px;margin-top:8px;white-space:pre-wrap}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);opacity:0;background:var(--text);color:var(--bg);padding:10px 18px;border-radius:14px;font-size:13px;font-weight:700;transition:.2s;pointer-events:none;z-index:99;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.splash{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:100;transition:opacity .3s}
+.splash.off{opacity:0;pointer-events:none}
+.spin{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--line);border-top-color:var(--accent);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.codebox{display:flex;gap:8px;align-items:center;margin-bottom:4px}.codebox .field{flex:1;margin:0}.codebox .btn{width:auto;padding:0 18px;height:48px;margin:0}
+.kv-stack{flex-direction:column;align-items:stretch;gap:6px}.kv-stack .val{font-size:14px;font-weight:700;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="splash" id="splash"><div class="spin"></div></div>
+<div id="app">
+<header>
+  <div class="brand"><img src="assets/logo-192.png" alt=""><b id="storeName">__STORE_NAME__</b></div>
+  <button class="iconbtn" id="themeBtn" aria-label="حالت نمایش"></button>
+</header>
+<main id="main">
+
+  <section class="view on" id="v-home">
+    <div class="hero">
+      <div class="lbl">موجودی کیف پول</div>
+      <div class="amt"><b id="hBal">0</b><span>تومان</span></div>
+      <div class="btns">
+        <button class="hbtn light" data-act="charge">افزایش موجودی</button>
+        <button class="hbtn glass" data-go="buy">خرید پنل</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg><b id="sPanels">0</b><span>پنل فعال</span></div>
+      <div class="stat"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><b id="sOrders">0</b><span>سفارش</span></div>
+      <div class="stat"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6.3"/></svg><b id="sRefs">0</b><span>دعوت موفق</span></div>
+    </div>
+    <div class="sec">دسترسی سریع</div>
+    <div class="quick">
+      <button class="qa" data-go="buy"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h9.4a2 2 0 0 0 2-1.6L22 7H6"/></svg>خرید</button>
+      <button class="qa" id="qTest" data-act="test"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v9h14v-9M12 8c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/></svg>تست</button>
+      <button class="qa" data-act="support"><svg viewBox="0 0 24 24"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg>پشتیبانی</button>
+      <button class="qa" data-go="account" data-tab="referral"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6.3"/></svg>دعوت</button>
+    </div>
+    <div class="sec">آخرین پنل‌ها <a data-go="panels">همه</a></div>
+    <div class="list" id="hPanels"></div>
+  </section>
+
+  <section class="view" id="v-buy">
+    <div class="seg" id="planSeg"></div>
+    <div class="list" id="productList"></div>
+  </section>
+
+  <section class="view" id="v-panels">
+    <div class="sec" style="margin-top:8px">پنل‌های من <span id="pCount" style="color:var(--muted);font-weight:500;font-size:12.5px"></span></div>
+    <div class="list" id="panelList"></div>
+  </section>
+
+  <section class="view" id="v-wallet">
+    <div class="hero" style="margin-top:8px">
+      <div class="lbl">موجودی کیف پول</div>
+      <div class="amt"><b id="wBal">0</b><span>تومان</span></div>
+      <div class="btns" style="grid-template-columns:1fr">
+        <button class="hbtn light" data-act="charge">افزایش موجودی</button>
+      </div>
+    </div>
+    <div class="sec">تراکنش‌ها</div>
+    <div class="list" id="txList"></div>
+  </section>
+
+  <section class="view" id="v-account">
+    <div class="card profile" style="margin-top:8px">
+      <div class="avatar" id="avatar"><svg viewBox="0 0 24 24" style="width:26px;height:26px"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
+      <div style="min-width:0;flex:1"><div class="nm" id="pName">—</div><div class="sub" id="pUser">—</div></div>
+    </div>
+    <div class="sec">اطلاعات حساب</div>
+    <div class="card">
+      <div class="row"><span class="lbl">شناسه عددی</span><span class="val" id="pId">—</span><button class="iconbtn" data-copy-id style="width:32px;height:32px;border-radius:10px" aria-label="کپی"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+      <div class="row"><span class="lbl">نام کاربری</span><span class="val" id="pHandle">—</span></div>
+    </div>
+    <div class="sec">دعوت دوستان</div>
+    <div class="card">
+      <div class="row"><span class="lbl">دعوت موفق</span><span class="val" id="rCount">0</span></div>
+      <div class="row"><span class="lbl">پاداش دریافتی</span><span class="val" id="rTotal">0</span></div>
+      <div class="copy" id="refCopy"><span id="refLink">—</span></div>
+    </div>
+    <div class="sec">تنظیمات</div>
+    <div class="card">
+      <button class="row" id="themeRow"><span class="lbl">حالت نمایش</span><span class="switch"></span></button>
+      <button class="row" data-act="faq"><span class="lbl">سوالات متداول</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="row" data-act="support"><span class="lbl">پشتیبانی</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-go="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-6h6v6"/></svg>خانه</button>
+  <button data-go="buy"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h9.4a2 2 0 0 0 2-1.6L22 7H6"/></svg>خرید</button>
+  <button data-go="panels"><svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>پنل‌ها</button>
+  <button data-go="wallet"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="17" cy="14.5" r="1.2"/></svg>کیف پول</button>
+  <button data-go="account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>حساب</button>
+</nav>
+
+<div class="scrim" id="scrim"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+var tg = window.Telegram && window.Telegram.WebApp;
+var INIT = "";
+var SESS = "";
+try { SESS = localStorage.getItem("ps_session") || ""; } catch(e) { SESS = ""; }
+function authHeaders(){ var x = {}; if (INIT) x["X-Telegram-Init-Data"] = INIT; if (SESS) x["X-Session"] = SESS; return x; }
+function hasAuth(){ return !!(INIT || SESS); }
+function hashRaw(){ return (location.hash || "").replace(/^#/, ""); }
+function fromHash(){
+  var raw = hashRaw();
+  var i = raw.indexOf("tgWebAppData=");
+  if (i < 0) return "";
+  var rest = raw.slice(i + 13);
+  var stop = rest.search(/&(tgWebAppVersion|tgWebAppPlatform|tgWebAppThemeParams|tgWebAppStartParam|tgWebAppBotInline|tgWebAppShowSettings)=/);
+  var v = stop >= 0 ? rest.slice(0, stop) : rest;
+  try { return decodeURIComponent(v); } catch(e){ return v; }
+}
+function refreshInit(){ INIT = (tg && tg.initData) || fromHash() || ""; return INIT; }
+var UNSAFE = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+var $ = function(s){ return document.querySelector(s); };
+var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+var S = {me:null, panels:[], orders:[], products:[], plans:[], tx:[], payment:null, plan:0, faqs:null};
+var ICON = {
+  box:'<svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>',
+  inbox:'<svg viewBox="0 0 24 24"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></svg>',
+  in:'<svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  out:'<svg viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>',
+  cart:'<svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h9.4a2 2 0 0 0 2-1.6L22 7H6"/></svg>',
+  chev:'<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+  upload:'<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>',
+  globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>'
+};
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function fa(n){ return Number(n||0).toLocaleString("en-US"); }
+function money(n){ return fa(n)+" تومان"; }
+function toast(m){ var t=$("#toast"); t.textContent=m; t.classList.add("on"); clearTimeout(toast.t); toast.t=setTimeout(function(){ t.classList.remove("on"); },2200); }
+function haptic(ok){ try{ tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred(ok?"success":"error"); }catch(e){} }
+
+async function api(path, opt){
+  opt = opt || {};
+  refreshInit();
+  var h = authHeaders();
+  if (opt.json) h["Content-Type"] = "application/json";
+  var res = await fetch("api/"+path, {method: opt.method||"GET", headers: h, cache: "no-store", body: opt.body});
+  var d = await res.json().catch(function(){ return {}; });
+  if (!res.ok || d.ok === false) throw new Error(d.error || "خطا در ارتباط با سرور");
+  return d;
+}
+
+var STATUS = {completed:["تکمیل شد","ok"],waiting_receipt:["منتظر رسید","warn"],waiting_admin:["در انتظار تأیید","warn"],
+  waiting_panel_details:["در حال آماده‌سازی","info"],rejected:["رد شد","bad"],cancelled:["لغو شد","mute"],
+  approved:["تأیید شد","ok"],waiting:["منتظر پرداخت","warn"],active:["فعال","ok"],expired:["منقضی","bad"],
+  inactive:["غیرفعال","mute"],suspended:["متوقف","warn"],paid:["پرداخت شد","ok"]};
+function tag(k){ var s=STATUS[k]||[k,"mute"]; return '<span class="tag '+s[1]+'">'+esc(s[0])+'</span>'; }
+
+function setTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  try{ localStorage.setItem("ps_theme", t); }catch(e){}
+  $("#themeMeta").setAttribute("content", t==="light" ? "#f3f5fb" : "#0b0e18");
+  $("#themeBtn").innerHTML = t==="light"
+    ? '<svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
+    : '<svg viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+}
+function currentTheme(){ return document.documentElement.getAttribute("data-theme") || "dark"; }
+
+function go(view, tab){
+  $$(".view").forEach(function(v){ v.classList.remove("on"); });
+  var sec = $("#v-"+view); if (sec) sec.classList.add("on");
+  $$("nav button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-go")===view); });
+  $("#main").scrollTop = 0;
+  if (view==="buy") renderBuy();
+  if (view==="panels") renderPanels();
+  if (view==="wallet") renderWallet();
+  if (view==="account") { renderAccount(); if (tab==="referral") setTimeout(function(){ $("#refCopy").scrollIntoView({block:"center"}); },60); }
+}
+
+function panelRow(p){
+  return '<button class="item" data-panel="'+esc(p.id)+'"><span class="ico">'+ICON.box+'</span><span class="txt"><span class="t">'+esc(p.title||"پنل")+'</span><span class="s">'+esc(p.created_at||"")+'</span></span><span class="side">'+tag(p.status)+'</span></button>';
+}
+
+function renderHome(){
+  var me = S.me || {};
+  $("#hBal").textContent = fa(me.balance||0);
+  $("#sPanels").textContent = fa(S.panels.filter(function(p){ return p.status==="active"; }).length);
+  $("#sOrders").textContent = fa(S.orders.length);
+  $("#sRefs").textContent = fa(me.referral_count||0);
+  $("#qTest").style.display = me.test_enabled===false ? "none" : "";
+  $("#hPanels").innerHTML = S.panels.length ? S.panels.slice(0,3).map(panelRow).join("")
+    : '<div class="empty">'+ICON.inbox+'<div>هنوز پنلی برای شما ثبت نشده است.</div></div>';
+}
+
+function renderBuy(){
+  if (!S.plans.length) {
+    $("#planSeg").innerHTML = "";
+    $("#productList").innerHTML = '<div class="empty">در حال حاضر مدت خریدی فعال نیست.</div>';
+    return;
+  }
+  if (!S.plans.some(function(x){ return Number(x.months)===Number(S.plan); })) S.plan = Number(S.plans[0].months);
+  $("#planSeg").innerHTML = S.plans.map(function(x){
+    return '<button data-plan="'+esc(x.months)+'"'+(Number(x.months)===Number(S.plan)?' class="on"':'')+'>'+esc(x.label)+'</button>';
+  }).join("");
+  var items = S.products.filter(function(p){ return Number(p.plan)===S.plan; });
+  $("#productList").innerHTML = items.length ? items.map(function(p){
+    return '<button class="prod" data-buy="'+esc(p.id)+'"><span class="nm">'+esc(p.name)+'</span><span class="meta">ظرفیت: '+fa(p.panel_limit||1)+' کاربر</span>'+
+      '<span class="foot"><span class="price">'+fa(p.price)+'<small>تومان</small></span><span class="go">خرید '+ICON.chev+'</span></span></button>';
+  }).join("") : '<div class="empty">'+ICON.inbox+'<div>برای این مدت هنوز پلنی ثبت نشده است.</div></div>';
+}
+
+function renderPanels(){
+  $("#pCount").textContent = S.panels.length ? fa(S.panels.length)+" مورد" : "";
+  $("#panelList").innerHTML = S.panels.length ? S.panels.map(panelRow).join("")
+    : '<div class="empty">'+ICON.box+'<div>هنوز پنلی برای شما ثبت نشده است.</div></div>';
+}
+
+function renderWallet(){
+  $("#wBal").textContent = fa((S.me||{}).balance||0);
+  $("#txList").innerHTML = S.tx.length ? S.tx.map(function(t){
+    var pos = Number(t.amount) > 0;
+    var pending = t.type === "charge" && t.status === "waiting";
+    var inner = '<span class="ico">'+(pos?ICON.in:ICON.out)+'</span><span class="txt"><span class="t">'+esc(t.title)+'</span><span class="s">'+esc(t.date||"")+'</span></span>'+
+      '<span class="side"><span class="amount '+(pos?"pos":"")+'">'+fa(Math.abs(t.amount))+' تومان</span>'+tag(t.status)+'</span>';
+    if (pending) {
+      return '<button class="item" data-charge="'+esc(t.id)+'" data-amount="'+esc(Math.abs(t.amount))+'">'+inner+'</button>';
+    }
+    return '<div class="item">'+inner+'</div>';
+  }).join("") : '<div class="empty">'+ICON.inbox+'<div>تراکنشی ثبت نشده است.</div></div>';
+}
+
+function openPending(cid, amount){
+  var online = !!((S.me||{}).online_enabled);
+  sheet('<h3>درخواست شارژ در انتظار پرداخت</h3><div class="sub">مبلغ '+money(amount)+'</div>'+
+    (online ? '<button class="btn primary" id="resumeOnline">پرداخت آنلاین</button>' : '')+
+    '<button class="btn" id="resumeReceipt">'+ICON.upload+'<span>ارسال رسید کارت به کارت</span></button>'+
+    '<button class="btn" id="cancelCharge" style="color:var(--bad)">لغو درخواست</button>');
+  if (online) $("#resumeOnline").onclick = function(){ resumeOnline(cid, this); };
+  $("#resumeReceipt").onclick = async function(){
+    try{
+      if (!S.payment) S.payment = await api("payment");
+      openReceipt(cid, amount);
+    }catch(e){ toast(e.message); }
+  };
+  $("#cancelCharge").onclick = function(){ cancelCharge(cid, this); };
+}
+
+async function resumeOnline(cid, el){
+  el.disabled = true;
+  try{
+    var r = await api("wallet/resume", {method:"POST", json:true, body: JSON.stringify({charge_id:cid})});
+    closeSheet();
+    if (tg && tg.openLink) tg.openLink(r.url); else window.location.href = r.url;
+  }catch(e){ haptic(false); toast(e.message); el.disabled = false; }
+}
+
+async function cancelCharge(cid, el){
+  el.disabled = true;
+  try{
+    var r = await api("wallet/cancel", {method:"POST", json:true, body: JSON.stringify({charge_id:cid})});
+    haptic(true); closeSheet(); toast(r.message || "درخواست لغو شد");
+    await refresh();
+  }catch(e){ haptic(false); toast(e.message); el.disabled = false; }
+}
+
+function renderAccount(){
+  var me = S.me || {};
+  $("#pName").textContent = me.first_name || UNSAFE.first_name || "کاربر";
+  $("#pUser").textContent = me.username ? "@"+me.username : "بدون نام کاربری";
+  $("#pId").textContent = me.user_id || "—";
+  $("#pHandle").textContent = me.username ? "@"+me.username : "ثبت نشده";
+  $("#rCount").textContent = fa(me.referral_count||0);
+  $("#rTotal").textContent = money(me.referral_reward_total||0);
+  $("#refLink").textContent = me.referral_link || "—";
+}
+
+function loadAvatar(){
+  refreshInit();
+  if (!hasAuth()) return;
+  fetch("api/avatar", {headers:authHeaders(), cache:"no-store"}).then(function(r){
+    if (!r.ok) throw new Error("no photo"); return r.blob();
+  }).then(function(b){
+    var img = document.createElement("img"); img.alt = "";
+    img.src = URL.createObjectURL(b);
+    var slot = $("#avatar"); slot.innerHTML = ""; slot.appendChild(img);
+  }).catch(function(){});
+}
+
+/* ---------- sheets ---------- */
+function sheet(html){ $("#sheet").innerHTML = '<div class="grab"></div>'+html; $("#scrim").classList.add("on"); }
+function closeSheet(){ $("#scrim").classList.remove("on"); }
+
+var appliedCode = "";
+function openBuy(id){
+  var p = S.products.find(function(x){ return Number(x.id)===Number(id); }); if (!p) return;
+  appliedCode = "";
+  renderBuySheet(p, null);
+}
+function renderBuySheet(p, info){
+  var price = info ? Number(info.price) : Number(p.price);
+  var bal = Number((S.me||{}).balance||0), enough = bal >= price;
+  sheet('<h3>'+esc(p.name)+'</h3><div class="sub">تأیید خرید پلن</div>'+
+    '<div class="kvs">'+
+      '<div class="kv"><span>قیمت پلن</span><b>'+money(p.price)+'</b></div>'+
+      (info ? '<div class="kv"><span>تخفیف ('+fa(info.percent)+'٪)</span><b>'+money(info.discount)+'</b></div>' : '')+
+      '<div class="kv"><span>مبلغ قابل پرداخت</span><b>'+money(price)+'</b></div>'+
+      '<div class="kv"><span>موجودی کیف پول</span><b>'+money(bal)+'</b></div>'+
+    '</div>'+
+    '<div class="codebox"><input class="field ltr" id="dcode" placeholder="کد تخفیف" value="'+esc(appliedCode)+'"><button class="btn" id="dapply">'+(info?'تغییر':'اعمال')+'</button></div>'+
+    (enough ? '<button class="btn primary" id="payNow" style="margin-top:12px">پرداخت از کیف پول</button>'
+            : '<div class="note">موجودی کیف پول برای این خرید کافی نیست.</div><button class="btn primary" id="chargeNow">افزایش موجودی</button>'));
+  $("#dapply").onclick = function(){ applyCode(p, $("#dcode").value.trim(), this); };
+  if (enough) $("#payNow").onclick = function(){ payWallet(p.id, this); };
+  else $("#chargeNow").onclick = function(){ closeSheet(); openAmount(); };
+}
+async function applyCode(p, code, el){
+  if (!code) { appliedCode = ""; renderBuySheet(p, null); return; }
+  el.disabled = true;
+  try{
+    var r = await api("discount/check", {method:"POST", json:true, body: JSON.stringify({product_id:Number(p.id), code:code})});
+    appliedCode = code;
+    renderBuySheet(p, r);
+    haptic(true);
+  }catch(e){ haptic(false); toast(e.message); el.disabled = false; }
+}
+async function payWallet(id, el){
+  el.disabled = true; el.textContent = "در حال پردازش…";
+  try{
+    var r = await api("buy", {method:"POST", json:true, body: JSON.stringify({product_id:Number(id), discount_code: appliedCode})});
+    haptic(true); closeSheet(); toast(r.message || "خرید ثبت شد");
+    await refresh(); go("panels");
+  }catch(e){ haptic(false); toast(e.message); el.disabled = false; el.textContent = "پرداخت از کیف پول"; }
+}
+
+function openAmount(){
+  sheet('<h3>افزایش موجودی</h3><div class="sub">مبلغ مورد نظر را به تومان وارد کنید. حداقل 1,000 تومان.</div>'+
+    '<input class="field ltr" id="amt" inputmode="numeric" placeholder="100000">'+
+    '<button class="btn primary" id="amtGo">ادامه</button>');
+  $("#amt").addEventListener("input", function(){ var d = this.value.replace(/[^\d]/g,""); this.value = d ? Number(d).toLocaleString("en-US") : ""; });
+  $("#amtGo").onclick = function(){
+    var v = Number(String($("#amt").value).replace(/[^\d]/g,""));
+    if (v < 1000) return toast("حداقل مبلغ 1,000 تومان است");
+    chooseMethod(v);
+  };
+}
+
+function chooseMethod(v){
+  var online = !!((S.me||{}).online_enabled);
+  sheet('<h3>روش پرداخت</h3><div class="sub">مبلغ '+money(v)+' را به یکی از روش‌های زیر پرداخت کنید.</div>'+
+    (online ? '<button class="btn primary" id="payOnline">'+ICON.globe+'<span>پرداخت آنلاین</span></button>' : '')+
+    '<button class="btn" id="payCard">'+ICON.upload+'<span>واریز به کارت و ارسال رسید</span></button>');
+  if (online) $("#payOnline").onclick = function(){ payOnline(v, this); };
+  $("#payCard").onclick = function(){ startReceipt(v, this); };
+}
+
+async function payOnline(v, el){
+  el.disabled = true;
+  try{
+    var r = await api("wallet/online", {method:"POST", json:true, body: JSON.stringify({amount:v})});
+    closeSheet();
+    if (tg && tg.openLink) tg.openLink(r.url); else window.location.href = r.url;
+    refresh();
+  }catch(e){ haptic(false); toast(e.message); el.disabled = false; }
+}
+
+async function startReceipt(v, el){
+  el.disabled = true;
+  try{
+    var r = await api("wallet/add", {method:"POST", json:true, body: JSON.stringify({amount:v})});
+    if (!S.payment) S.payment = await api("payment");
+    openReceipt(r.charge_id, v);
+  }catch(e){ toast(e.message); el.disabled = false; }
+}
+
+function openReceipt(cid, amount){
+  var p = S.payment || {};
+  sheet('<h3>ارسال رسید</h3><div class="sub">مبلغ '+money(amount)+' را به شماره کارت زیر واریز کنید و تصویر رسید را بارگذاری کنید.</div>'+
+    '<div class="kvs"><div class="kv"><span>شماره کارت</span><b class="ltr">'+esc(p.card||"—")+'</b></div><div class="kv"><span>به نام</span><b>'+esc(p.owner||"—")+'</b></div></div>'+
+    '<label class="file" id="pick">'+ICON.upload+'<span id="fname">انتخاب تصویر رسید</span><input type="file" id="rcpt" accept="image/*" hidden></label>'+
+    '<button class="btn primary" id="rcptGo" disabled>ارسال رسید</button>');
+  $("#rcpt").onchange = function(){
+    var f = this.files && this.files[0]; if (!f) return;
+    if (f.size > 2*1024*1024) { toast("حجم رسید بیشتر از 2 مگابایت است"); this.value = ""; return; }
+    $("#fname").textContent = f.name; $("#rcptGo").disabled = false;
+  };
+  $("#rcptGo").onclick = async function(){
+    var f = $("#rcpt").files[0]; if (!f) return;
+    this.disabled = true; this.textContent = "در حال ارسال…";
+    var fd = new FormData(); fd.append("charge_id", cid); fd.append("receipt", f);
+    try{
+      var res = await fetch("api/wallet/receipt", {method:"POST", headers:authHeaders(), body:fd, cache:"no-store"});
+      var d = await res.json().catch(function(){ return {}; });
+      if (!res.ok || d.ok===false) throw new Error(d.error || "ارسال رسید ناموفق بود");
+      haptic(true); closeSheet(); toast(d.message || "رسید ارسال شد");
+      refresh();
+    }catch(e){ haptic(false); toast(e.message); this.disabled = false; this.textContent = "ارسال رسید"; }
+  };
+}
+
+function detailRows(text){
+  return String(text||"").split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean).map(function(l){
+    var i = l.indexOf(":");
+    return i < 0 ? {k:"", v:l} : {k:l.slice(0,i).trim(), v:l.slice(i+1).trim()};
+  });
+}
+function openPanel(id){
+  var p = S.panels.find(function(x){ return Number(x.id)===Number(id); }); if (!p) return;
+  var rows = detailRows(p.details);
+  var body = rows.length ? rows.map(function(r){
+    return '<div class="kv kv-stack">'+(r.k ? '<span class="k">'+esc(r.k)+'</span>' : '')+
+      '<b class="val" style="direction:ltr;unicode-bidi:isolate;text-align:left;word-break:break-all">'+esc(r.v)+'</b></div>';
+  }).join("") : '<div class="empty">اطلاعاتی ثبت نشده است.</div>';
+  sheet('<h3>'+esc(p.title||"پنل")+'</h3><div class="sub">'+tag(p.status)+' '+esc(p.created_at||"")+'</div>'+
+    '<div class="kvs">'+body+'</div>'+
+    '<button class="btn" id="cpPanel">کپی اطلاعات</button>');
+  $("#cpPanel").onclick = function(){ copy(p.details||""); };
+}
+
+function openSupport(){
+  sheet('<h3>پشتیبانی</h3><div class="sub">پیام خود را بنویسید. پاسخ مدیریت در ربات برای شما ارسال می‌شود.</div>'+
+    '<textarea class="field" id="supMsg" placeholder="متن پیام"></textarea>'+
+    '<button class="btn primary" id="supGo">ارسال پیام</button>');
+  $("#supGo").onclick = async function(){
+    var m = $("#supMsg").value.trim(); if (!m) return toast("متن پیام را وارد کنید");
+    this.disabled = true;
+    try{
+      var r = await api("support", {method:"POST", json:true, body: JSON.stringify({message:m})});
+      haptic(true); closeSheet(); toast(r.message || "پیام ثبت شد");
+    }catch(e){ haptic(false); toast(e.message); this.disabled = false; }
+  };
+}
+
+async function openFaq(){
+  sheet('<h3>سوالات متداول</h3><div class="sub">پاسخ هر سوال را ببینید.</div><div class="kvs" id="faqList" style="padding:0"><div class="empty">در حال دریافت…</div></div>');
+  try{
+    if (!S.faqs) S.faqs = (await api("faqs")).faqs || [];
+    $("#faqList").innerHTML = S.faqs.length ? S.faqs.map(function(f){
+      return '<details class="faq"><summary>'+esc(f.question)+'</summary><p>'+esc(f.answer)+'</p></details>';
+    }).join("") : '<div class="empty">موردی ثبت نشده است.</div>';
+  }catch(e){ $("#faqList").innerHTML = '<div class="empty">'+esc(e.message)+'</div>'; }
+}
+
+function copy(text){
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){ haptic(true); toast("کپی شد"); }, function(){ toast("کپی انجام نشد"); });
+  } else toast("کپی انجام نشد");
+}
+
+async function requestTest(){
+  try{
+    var r = await api("test", {method:"POST", json:true, body:"{}"});
+    haptic(true); toast(r.message || "درخواست ثبت شد");
+  }catch(e){ haptic(false); toast(e.message); }
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", function(e){
+  var t = e.target, el;
+  if ((el = t.closest("[data-go]"))) { go(el.getAttribute("data-go"), el.getAttribute("data-tab")); return; }
+  if ((el = t.closest("[data-act]"))) {
+    var a = el.getAttribute("data-act");
+    if (a==="charge") openAmount(); else if (a==="support") openSupport(); else if (a==="faq") openFaq(); else if (a==="test") requestTest();
+    return;
+  }
+  if ((el = t.closest("[data-charge]"))) { openPending(el.getAttribute("data-charge"), Number(el.getAttribute("data-amount"))); return; }
+  if ((el = t.closest("#planSeg button"))) { S.plan = Number(el.getAttribute("data-plan")); renderBuy(); return; }
+  if ((el = t.closest("[data-buy]"))) { openBuy(el.getAttribute("data-buy")); return; }
+  if ((el = t.closest("[data-panel]"))) { openPanel(el.getAttribute("data-panel")); return; }
+  if (t.closest("#themeBtn") || t.closest("#themeRow")) { setTheme(currentTheme()==="light" ? "dark" : "light"); return; }
+  if (t.closest("[data-copy-id]")) { copy(String((S.me||{}).user_id||"")); return; }
+  if (t.closest("#refCopy")) { copy((S.me||{}).referral_link||""); return; }
+  if (t.id === "scrim") closeSheet();
+});
+
+async function refresh(){
+  var r = await Promise.all([api("me"), api("panels"), api("orders"), api("products"), api("transactions")]);
+  S.me = r[0]; S.panels = r[1].panels||[]; S.orders = r[2].orders||[]; S.products = r[3].products||[]; S.plans = r[3].plans||[]; S.tx = r[4].items||[];
+  if (S.me.store_name) { $("#storeName").textContent = S.me.store_name; document.title = S.me.store_name; }
+  renderHome(); renderBuy(); renderAccount();
+}
+
+async function boot(){
+  refreshInit();
+  var tok = "";
+  try { tok = new URLSearchParams(location.search).get("t") || ""; } catch(e) { tok = ""; }
+  if (tok && !hasAuth()) {
+    try {
+      var r = await fetch("api/auth", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({t: tok}), cache:"no-store"});
+      var d = await r.json();
+      if (d.ok && d.session) {
+        SESS = d.session;
+        try { localStorage.setItem("ps_session", SESS); } catch(e) {}
+      } else {
+        toast(d.error || "ورود ناموفق بود.");
+      }
+    } catch(e) { toast("اتصال به سرور برقرار نشد."); }
+    try { history.replaceState(null, "", location.pathname); } catch(e) {}
+  }
+  if (!hasAuth()) {
+    $("#splash").classList.add("off");
+    $("#main").insertAdjacentHTML("afterbegin", '<div class="note">برای ورود، از دکمه‌ی «ورود به مینی‌اپ» داخل ربات استفاده کنید.</div>');
+    return;
+  }
+  try{ await refresh(); loadAvatar(); }
+  catch(e){ toast(e.message || "خطا در ارتباط با سرور"); }
+  finally{ $("#splash").classList.add("off"); }
+}
+
+if (tg) { try{ tg.ready(); tg.expand(); if (tg.disableVerticalSwipes) tg.disableVerticalSwipes(); }catch(e){} }
+var saved = null; try{ saved = localStorage.getItem("ps_theme"); }catch(e){}
+setTheme(saved || ((tg && tg.colorScheme==="light") ? "light" : "dark"));
+boot();
+})();
+</script>
+</body>
+</html>

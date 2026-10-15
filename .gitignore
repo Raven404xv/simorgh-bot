@@ -1,0 +1,19 @@
+# ---- تنظیمات و اسرار (هرگز commit نشوند) ----
+config.php
+config.php.tmp
+installed.lock
+
+# ---- داده‌های زمان اجرا (بک‌آپ دیتابیس، رسید، آواتار) ----
+storage/*
+!storage/.htaccess
+
+# ---- فایل‌های موقت و سیستمی ----
+*.tmp
+*.log
+*.sql
+*.sql.gz
+.env
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

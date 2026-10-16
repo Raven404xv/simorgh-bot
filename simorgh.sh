@@ -687,22 +687,45 @@ rollback_install() {
 }
 
 # ---------- Verification ----------
+HEALTH_OK=true
+
+show_recent_errors() {
+  local f
+  for f in "/var/log/apache2/${VHOST_NAME}-ssl-error.log" "/var/log/apache2/error.log"; do
+    if [[ -f "$f" ]]; then
+      echo -e "  ${C_BOLD}Last lines of ${f}:${C_RESET}" >&2
+      tail -n 15 "$f" >&2
+      echo >&2
+    fi
+  done
+}
+
 health_check() {
   local code external
   code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 \
     --resolve "${PUBLIC_HOST}:${HTTPS_PORT}:127.0.0.1" \
     "https://${PUBLIC_HOST}:${HTTPS_PORT}/install.php")
   case "$code" in
-    200|301|302|303|307|308) ok "Local check passed (HTTP ${code})." ;;
-    *) warn "Local check returned HTTP ${code}. Check the logs (main menu, option 4)." ;;
+    200|301|302|303|307|308)
+      ok "Local check passed (HTTP ${code})."
+      HEALTH_OK=true ;;
+    *)
+      err "Local check returned HTTP ${code}. Apache is running, but the bot page returned an error."
+      show_recent_errors
+      HEALTH_OK=false ;;
   esac
 
   external=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 "$(public_base)/install.php")
-  if [[ "$external" == "000" ]]; then
-    warn "The address is not reachable from the internet yet. Check the cloud provider's firewall and port ${HTTPS_PORT}."
-  else
-    ok "Address is reachable from the internet (HTTP ${external})."
-  fi
+  case "$external" in
+    000)
+      warn "The address is not reachable from the internet. Check the cloud provider's firewall and port ${HTTPS_PORT}."
+      HEALTH_OK=false ;;
+    2??|3??)
+      ok "Address is reachable from the internet (HTTP ${external})." ;;
+    *)
+      warn "Reachable from the internet, but it returned HTTP ${external}."
+      HEALTH_OK=false ;;
+  esac
 }
 
 # ---------- Banner ----------
@@ -914,6 +937,9 @@ do_install() {
   step "Verification"
   health_check
   show_success "$(public_base)"
+  if [[ "$HEALTH_OK" != true ]]; then
+    warn "Files and HTTPS are in place, but the page did not respond correctly. Fix the error shown above, then open the address again."
+  fi
   pause
 }
 

@@ -247,11 +247,15 @@ telegram_port_ok() {
 }
 
 # Asks for a port until the user enters one that Telegram accepts and that is free.
+# Empty input cancels. Returns 1 on cancel.
 ask_specific_port() {
   local p
   while true; do
-    read -r -p "  Enter the port for the bot's HTTPS (${TELEGRAM_PORTS// /, }): " p
+    read -r -p "  Enter the port for the bot's HTTPS (${TELEGRAM_PORTS// /, }), or press Enter to cancel: " p
     p="${p// /}"
+    if [[ -z "$p" ]]; then
+      return 1
+    fi
     if ! [[ "$p" =~ ^[0-9]+$ ]]; then
       warn "Enter a port number."
       continue
@@ -610,11 +614,12 @@ plan_install() {
     if ask_yes_no "Use port 80 for SSL? (n = enter a specific port)"; then
       HTTPS_PORT=80
     else
-      HTTPS_PORT=$(ask_specific_port)
+      HTTPS_PORT=$(ask_specific_port) || { err "Installation cancelled."; return 1; }
     fi
   else
     warn "Port 80 is in use by $(port_owner 80)."
-    HTTPS_PORT=$(ask_specific_port)
+    info "Port 80 cannot be used. The bot can still run on another allowed port with a DNS certificate or a self-signed one."
+    HTTPS_PORT=$(ask_specific_port) || { err "Installation cancelled."; return 1; }
   fi
   ok "The bot will use HTTPS on port ${HTTPS_PORT}."
 

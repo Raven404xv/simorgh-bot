@@ -19,6 +19,8 @@ VHOST_NAME="simorgh-bot"
 VHOST_FILE="/etc/apache2/sites-available/${VHOST_NAME}.conf"
 PORTS_CONF="/etc/apache2/ports.conf"
 PORTS_BACKUP="/etc/apache2/ports.conf.simorgh-orig"
+DEFAULT_SITE_STATE="/etc/simorgh/default-site.state"
+SELF_SIGNED_DIR="/etc/simorgh/ssl"
 POLICY_FILE="/usr/sbin/policy-rc.d"
 CF_CREDS="/root/.secrets/simorgh-cloudflare.ini"
 DEPLOY_HOOK="/etc/letsencrypt/renewal-hooks/deploy/simorgh-reload-apache.sh"
@@ -30,13 +32,17 @@ GROUP_URL="https://t.me/SimorghBotGroup"
 LOG_LINES=100
 REMOTE_VERSION=""
 
-# Choices made during installation (set by plan_network)
-DOMAIN=""          # domain name, empty when installing on the server IP
-EMAIL=""           # Let's Encrypt contact email
-PUBLIC_HOST=""     # domain or public IP used in the address
-CERT_METHOD=""     # none | http01 | cloudflare | manual
-HTTPS_PORT=""      # 443 or 8443 (empty when no HTTPS)
-SCHEME="http"      # http | https
+# Ports Telegram accepts for webhooks
+TELEGRAM_PORTS="80 88 443 8443"
+
+# Choices made during installation (set by plan_install)
+DOMAIN=""          # empty when SSL is requested for the server IP
+EMAIL=""           # Let's Encrypt contact email (domain only)
+PUBLIC_HOST=""     # domain, or the server's public IP
+HTTPS_PORT=""      # port the bot listens on for HTTPS
+CERT_METHOD=""     # selfsigned | http01 | cloudflare | manual
+CERT_FILE=""
+KEY_FILE=""
 
 C_RED='\033[0;31m'; C_GREEN='\033[0;32m'; C_YELLOW='\033[1;33m'
 C_CYAN='\033[0;36m'; C_BOLD='\033[1m'; C_RESET='\033[0m'
@@ -172,6 +178,7 @@ domain_ipv4() {
   getent ahostsv4 "$1" 2>/dev/null | awk '{print $1; exit}'
 }
 
+# Returns 0 if the domain points to this server (or the user accepts a mismatch).
 check_dns() {
   local d="$1" dns_ip server_ip
   dns_ip=$(domain_ipv4 "$d")
@@ -203,7 +210,7 @@ port_owner() {
   return 0
 }
 
-# Returns 0 when the port is free or already belongs to this bot's Apache.
+# Returns 0 when the port is free or already used by this bot's Apache.
 port_usable() {
   local name
   name=$(port_owner "$1") || return 0
@@ -231,6 +238,37 @@ show_port_table() {
   done
 }
 
+telegram_port_ok() {
+  local p
+  for p in $TELEGRAM_PORTS; do
+    [[ "$1" == "$p" ]] && return 0
+  done
+  return 1
+}
+
+# Asks for a port until the user enters one that Telegram accepts and that is free.
+ask_specific_port() {
+  local p
+  while true; do
+    read -r -p "  Enter the port for the bot's HTTPS (${TELEGRAM_PORTS// /, }): " p
+    p="${p// /}"
+    if ! [[ "$p" =~ ^[0-9]+$ ]]; then
+      warn "Enter a port number."
+      continue
+    fi
+    if ! telegram_port_ok "$p"; then
+      warn "Telegram accepts webhooks only on ${TELEGRAM_PORTS// /, }. Choose one of these."
+      continue
+    fi
+    if ! port_usable "$p"; then
+      warn "Port ${p} is in use by $(port_owner "$p"). Choose another port."
+      continue
+    fi
+    echo "$p"
+    return 0
+  done
+}
+
 ensure_firewall_port() {
   local p="$1"
   command -v ufw >/dev/null 2>&1 || return 0
@@ -250,15 +288,14 @@ ensure_firewall_port() {
 }
 
 required_public_ports() {
-  if [[ "$CERT_METHOD" == "none" || "$CERT_METHOD" == "http01" ]]; then
+  if [[ "$CERT_METHOD" == "http01" ]]; then
     echo 80
   fi
-  if [[ -n "$HTTPS_PORT" ]]; then
-    echo "$HTTPS_PORT"
-  fi
+  echo "$HTTPS_PORT"
 }
 
 # ---------- Apache ports and vhosts ----------
+# Writes ports.conf so Apache listens only on the given ports.
 write_ports_conf() {
   [[ -f "$PORTS_BACKUP" ]] || cp "$PORTS_CONF" "$PORTS_BACKUP"
   {
@@ -276,7 +313,24 @@ restore_ports_conf() {
   fi
 }
 
-vhost_app_block() { # host port
+# Apache's default site is disabled while the bot owns the ports, and re-enabled on removal if it was enabled before.
+disable_default_site() {
+  local state
+  if [[ -L /etc/apache2/sites-enabled/000-default.conf ]]; then
+    mkdir -p "$(dirname "$DEFAULT_SITE_STATE")"
+    echo "000-default" > "$DEFAULT_SITE_STATE"
+    a2dissite 000-default >>"$LOG_FILE" 2>&1
+  fi
+}
+
+restore_default_site() {
+  if [[ -f "$DEFAULT_SITE_STATE" ]] && grep -q "000-default" "$DEFAULT_SITE_STATE"; then
+    a2ensite 000-default >>"$LOG_FILE" 2>&1
+  fi
+  rm -f "$DEFAULT_SITE_STATE"
+}
+
+vhost_app_block() { # host port  (plain HTTP, used only for the HTTP-01 challenge stage)
   cat <<EOF
 <VirtualHost *:$2>
     ServerName $1
@@ -293,7 +347,7 @@ vhost_app_block() { # host port
 EOF
 }
 
-vhost_redirect_block() { # host target_base  (e.g. https://bot.example.com)
+vhost_redirect_block() { # host target_base  (e.g. https://bot.example.com:8443)
   cat <<EOF
 <VirtualHost *:80>
     ServerName $1
@@ -312,15 +366,15 @@ vhost_redirect_block() { # host target_base  (e.g. https://bot.example.com)
 EOF
 }
 
-vhost_ssl_block() { # host port
+vhost_ssl_block() { # host port certfile keyfile
   cat <<EOF
 <VirtualHost *:$2>
     ServerName $1
     DocumentRoot ${INSTALL_DIR}
 
     SSLEngine on
-    SSLCertificateFile /etc/letsencrypt/live/$1/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/$1/privkey.pem
+    SSLCertificateFile $3
+    SSLCertificateKeyFile $4
     SSLProtocol -all +TLSv1.2 +TLSv1.3
 
     <Directory ${INSTALL_DIR}>
@@ -342,11 +396,15 @@ https_base() { # host port
   fi
 }
 
+public_base() {
+  https_base "$PUBLIC_HOST" "$HTTPS_PORT"
+}
+
 activate_site() {
   a2ensite "${VHOST_NAME}.conf" >>"$LOG_FILE" 2>&1
 }
 
-# Validates the Apache configuration, then starts or reloads Apache and checks it is running.
+# Validates the Apache configuration, then starts or reloads Apache and checks that it is running.
 apache_apply() {
   if ! apache2ctl configtest >>"$LOG_FILE" 2>&1; then
     err "Apache configuration is invalid. Details: ${LOG_FILE}"
@@ -381,14 +439,14 @@ install_dependencies() {
   info "Installing dependencies (Apache, PHP, Git, Certbot). This may take a few minutes..."
   export DEBIAN_FRONTEND=noninteractive
   local created_policy=false rc=0
-  # Stop apt from starting Apache on port 80 during installation; the manager starts it on the right ports.
+  # Stop apt from starting Apache on its default ports while installing; the manager starts it on the chosen ports.
   if [[ ! -e "$POLICY_FILE" ]]; then
     block_service_autostart
     created_policy=true
   fi
   apt-get update -y >>"$LOG_FILE" 2>&1 || rc=1
   if [[ $rc -eq 0 ]]; then
-    apt-get install -y apache2 git curl unzip certbot python3-certbot-apache \
+    apt-get install -y apache2 git curl unzip openssl certbot python3-certbot-apache \
       php libapache2-mod-php php-mysql php-curl php-mbstring php-xml >>"$LOG_FILE" 2>&1 || rc=1
   fi
   if [[ "$created_policy" == true ]]; then
@@ -443,8 +501,22 @@ EOF
 }
 
 # ---------- Certificates ----------
-cert_file() {
-  echo "/etc/letsencrypt/live/$1/fullchain.pem"
+create_self_signed_cert() { # ip
+  local ip="$1"
+  mkdir -p "$SELF_SIGNED_DIR"
+  chmod 700 "$SELF_SIGNED_DIR"
+  CERT_FILE="${SELF_SIGNED_DIR}/${ip}.crt"
+  KEY_FILE="${SELF_SIGNED_DIR}/${ip}.key"
+  info "Creating a self-signed certificate for ${ip}..."
+  if openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
+      -keyout "$KEY_FILE" -out "$CERT_FILE" \
+      -subj "/CN=${ip}" -addext "subjectAltName=IP:${ip}" >>"$LOG_FILE" 2>&1; then
+    chmod 600 "$KEY_FILE"
+    ok "Self-signed certificate created (valid for 10 years)."
+    return 0
+  fi
+  err "Could not create the self-signed certificate. Details: ${LOG_FILE}"
+  return 1
 }
 
 obtain_certificate() {
@@ -477,7 +549,10 @@ obtain_certificate() {
       fi
       ;;
   esac
-  if [[ "$ready" == true && -f "$(cert_file "$DOMAIN")" ]]; then
+
+  if [[ "$ready" == true && -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]]; then
+    CERT_FILE="/etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
+    KEY_FILE="/etc/letsencrypt/live/${DOMAIN}/privkey.pem"
     ok "SSL certificate is ready."
     return 0
   fi
@@ -485,6 +560,7 @@ obtain_certificate() {
   return 1
 }
 
+# Lets the user pick a DNS provider. Sets CERT_METHOD, or returns 1 if cancelled.
 choose_dns_provider() {
   echo "    1) Cloudflare                  (automatic renewal)"
   echo "    2) Another DNS provider        (manual renewal every 90 days)"
@@ -496,122 +572,97 @@ choose_dns_provider() {
     case "$c" in
       1) CERT_METHOD="cloudflare"; return 0 ;;
       2) CERT_METHOD="manual"; return 0 ;;
-      3) return 1 ;;
+      3) err "Installation cancelled."; return 1 ;;
       *) warn "Enter 1, 2 or 3." ;;
     esac
   done
 }
 
-# ---------- Planning (every decision is asked explicitly) ----------
-plan_network() {
+# ---------- Planning: every decision is asked explicitly ----------
+plan_install() {
+  DOMAIN=""; EMAIL=""; PUBLIC_HOST=""; HTTPS_PORT=""
+  CERT_METHOD=""; CERT_FILE=""; KEY_FILE=""
+
   step "Step 1 of 4 — Domain"
-  if ask_yes_no "Do you have a domain name that points to this server? (required for HTTPS and Telegram)"; then
+  if ask_yes_no "Do you have a domain name that points to this server? (n = get SSL on the server IP)"; then
     DOMAIN=$(ask_domain)
-    check_dns "$DOMAIN" || { err "Installation cancelled."; return 1; }
+    if ! check_dns "$DOMAIN"; then
+      err "Installation cancelled."
+      return 1
+    fi
     EMAIL=$(ask_email)
     PUBLIC_HOST="$DOMAIN"
   else
-    DOMAIN=""
     PUBLIC_HOST=$(server_public_ip)
     if [[ -z "$PUBLIC_HOST" ]]; then
       err "Could not detect the server's public IP."
       return 1
     fi
+    warn "SSL on an IP address uses a self-signed certificate. Browsers will show a warning."
+    warn "Telegram accepts a self-signed certificate only if the bot uploads it when setting the webhook."
   fi
 
-  step "Step 2 of 4 — Ports and certificate"
+  step "Step 2 of 4 — Port"
   show_port_table
   echo
-
-  if [[ -z "$DOMAIN" ]]; then
-    if ! port_usable 80; then
-      err "Port 80 is in use by $(port_owner 80). Without a domain the bot needs port 80."
-      err "Add a domain name, or free port 80 first."
-      return 1
-    fi
-    warn "Without a domain the bot runs over plain HTTP on port 80."
-    warn "Telegram does not accept plain HTTP webhooks, so the bot will not receive messages until you add a domain and SSL."
-    if ! ask_yes_no "Do you want to use port 80 and continue with HTTP only?"; then
-      err "Installation cancelled."
-      return 1
-    fi
-    CERT_METHOD="none"
-    HTTPS_PORT=""
-    SCHEME="http"
-    return 0
-  fi
-
-  # Certificate method: port 80 first, DNS challenge as the alternative.
   if port_usable 80; then
-    if ask_yes_no "Port 80 is free. Do you want to use port 80 to get the SSL certificate automatically? (recommended)"; then
+    info "Port 80 is open."
+    if ask_yes_no "Use port 80 for SSL? (n = enter a specific port)"; then
+      HTTPS_PORT=80
+    else
+      HTTPS_PORT=$(ask_specific_port)
+    fi
+  else
+    warn "Port 80 is in use by $(port_owner 80)."
+    HTTPS_PORT=$(ask_specific_port)
+  fi
+  ok "The bot will use HTTPS on port ${HTTPS_PORT}."
+
+  step "Step 3 of 4 — Certificate"
+  if [[ -z "$DOMAIN" ]]; then
+    CERT_METHOD="selfsigned"
+    info "A self-signed certificate will be created for ${PUBLIC_HOST}."
+  elif [[ "$HTTPS_PORT" == "80" ]]; then
+    warn "Port 80 carries HTTPS, so the port 80 challenge cannot be used. The certificate will use a DNS challenge."
+    warn "Renewals need the same DNS method, so use Cloudflare for automatic renewal."
+    choose_dns_provider || return 1
+  elif port_usable 80; then
+    if ask_yes_no "Port 80 is open. Use it to get the certificate automatically? (recommended)"; then
       CERT_METHOD="http01"
     else
-      info "Port 80 will not be used. The certificate will use a DNS challenge instead."
+      info "Port 80 will not be used. The certificate will use a DNS challenge."
+      choose_dns_provider || return 1
     fi
   else
-    warn "Port 80 is in use by $(port_owner 80). It will not be used or stopped."
-    info "The certificate will use a DNS challenge, which does not need port 80."
+    warn "Port 80 is busy, so the certificate will use a DNS challenge."
+    choose_dns_provider || return 1
   fi
 
-  if [[ -z "$CERT_METHOD" ]]; then
-    if ! choose_dns_provider; then
-      err "Installation cancelled."
-      return 1
-    fi
-  fi
-
-  # HTTPS port: 443 first, 8443 as the alternative.
-  if port_usable 443; then
-    if ask_yes_no "Port 443 is free. Use port 443 for the bot's HTTPS? (recommended)"; then
-      HTTPS_PORT=443
-    fi
-  else
-    warn "Port 443 is in use by $(port_owner 443)."
-  fi
-
-  if [[ -z "$HTTPS_PORT" ]]; then
-    if port_usable 8443; then
-      if ask_yes_no "Use port 8443 for the bot's HTTPS instead? (the address will include :8443)"; then
-        HTTPS_PORT=8443
-      fi
-    else
-      warn "Port 8443 is also in use by $(port_owner 8443)."
-    fi
-  fi
-
-  if [[ -z "$HTTPS_PORT" ]]; then
-    err "No HTTPS port is available. Ports 443 and 8443 are both in use or were declined."
-    return 1
-  fi
-
-  SCHEME="https"
   return 0
 }
 
-public_base() {
-  if [[ "$SCHEME" == "http" ]]; then
-    echo "http://${PUBLIC_HOST}"
-  else
-    https_base "$PUBLIC_HOST" "$HTTPS_PORT"
-  fi
-}
-
 show_plan() {
+  local cert_text port80_text
+  case "$CERT_METHOD" in
+    selfsigned) cert_text="Self-signed (IP address, browser warning)" ;;
+    http01)     cert_text="Let's Encrypt, HTTP-01 on port 80 (automatic renewal)" ;;
+    cloudflare) cert_text="Let's Encrypt, DNS-01 via Cloudflare (automatic renewal)" ;;
+    manual)     cert_text="Let's Encrypt, DNS-01 manual (renew every 90 days by hand)" ;;
+  esac
+  if [[ "$CERT_METHOD" == "http01" ]]; then
+    port80_text="used for the challenge and redirect"
+  elif [[ "$HTTPS_PORT" == "80" ]]; then
+    port80_text="used for HTTPS"
+  else
+    port80_text="not used"
+  fi
+
   echo
   echo -e "  ${C_BOLD}Installation plan${C_RESET}"
-  echo "    Domain       : ${DOMAIN:-none (server IP)}"
-  case "$CERT_METHOD" in
-    none)       echo "    SSL          : none (HTTP only)" ;;
-    http01)     echo "    SSL          : Let's Encrypt, HTTP-01 on port 80 (auto renewal)" ;;
-    cloudflare) echo "    SSL          : Let's Encrypt, DNS-01 via Cloudflare (auto renewal)" ;;
-    manual)     echo "    SSL          : Let's Encrypt, DNS-01 manual (renew every 90 days by hand)" ;;
-  esac
-  if [[ "$CERT_METHOD" == "none" || "$CERT_METHOD" == "http01" ]]; then
-    echo "    Port 80      : used"
-  else
-    echo "    Port 80      : not used"
-  fi
-  echo "    HTTPS port   : ${HTTPS_PORT:-none}"
+  echo "    Target       : ${DOMAIN:-server IP (${PUBLIC_HOST})}"
+  echo "    Certificate  : ${cert_text}"
+  echo "    Port 80      : ${port80_text}"
+  echo "    HTTPS port   : ${HTTPS_PORT}"
   echo "    Address      : $(public_base)/install.php"
   echo
 }
@@ -622,36 +673,30 @@ rollback_install() {
   a2dissite "${VHOST_NAME}.conf" >>"$LOG_FILE" 2>&1
   rm -f "$VHOST_FILE"
   restore_ports_conf
+  restore_default_site
   if apache2ctl configtest >>"$LOG_FILE" 2>&1 && systemctl is-active --quiet apache2; then
     systemctl reload apache2 >>"$LOG_FILE" 2>&1
   fi
   rm -rf "$INSTALL_DIR"
-  ok "Rollback complete. The server is back to its previous web configuration."
+  ok "Rollback complete. The web server configuration was restored."
 }
 
 # ---------- Verification ----------
 health_check() {
   local code external
-  if [[ "$SCHEME" == "https" ]]; then
-    code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 \
-      --resolve "${DOMAIN}:${HTTPS_PORT}:127.0.0.1" \
-      "https://${DOMAIN}:${HTTPS_PORT}/install.php")
-  else
-    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-      -H "Host: ${PUBLIC_HOST}" "http://127.0.0.1/install.php")
-  fi
+  code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 \
+    --resolve "${PUBLIC_HOST}:${HTTPS_PORT}:127.0.0.1" \
+    "https://${PUBLIC_HOST}:${HTTPS_PORT}/install.php")
   case "$code" in
     200|301|302|303|307|308) ok "Local check passed (HTTP ${code})." ;;
     *) warn "Local check returned HTTP ${code}. Check the logs (main menu, option 4)." ;;
   esac
 
-  if [[ "$SCHEME" == "https" ]]; then
-    external=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 "$(public_base)/install.php")
-    if [[ "$external" == "000" ]]; then
-      warn "The address is not reachable from the internet yet. Check the cloud provider's firewall and port ${HTTPS_PORT}."
-    else
-      ok "Address is reachable from the internet (HTTP ${external})."
-    fi
+  external=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 "$(public_base)/install.php")
+  if [[ "$external" == "000" ]]; then
+    warn "The address is not reachable from the internet yet. Check the cloud provider's firewall and port ${HTTPS_PORT}."
+  else
+    ok "Address is reachable from the internet (HTTP ${external})."
   fi
 }
 
@@ -783,7 +828,7 @@ do_install() {
     pause; return
   fi
 
-  if ! plan_network; then
+  if ! plan_install; then
     pause; return
   fi
 
@@ -793,13 +838,13 @@ do_install() {
     pause; return
   fi
 
-  step "Step 3 of 4 — Installing the bot"
+  step "Step 4 of 4 — Installing the bot"
   if ! install_dependencies; then
     pause; return
   fi
 
   local p ports_list=()
-  mapfile -t ports_list < <(required_public_ports)
+  mapfile -t ports_list < <(required_public_ports | sort -un)
   for p in "${ports_list[@]}"; do
     ensure_firewall_port "$p"
   done
@@ -819,50 +864,47 @@ do_install() {
   fix_permissions
   ok "Bot files downloaded."
 
-  # Stage 1: Apache serves the bot on port 80 (for HTTP, or for the HTTP-01 challenge).
-  # DNS challenge methods do not need Apache before the certificate exists.
-  if [[ "$CERT_METHOD" == "none" || "$CERT_METHOD" == "http01" ]]; then
-    local stage_host="$PUBLIC_HOST"
-    [[ "$CERT_METHOD" == "http01" ]] && stage_host="$DOMAIN"
-    write_ports_conf 80
-    vhost_app_block "$stage_host" 80 > "$VHOST_FILE"
-    activate_site
-    if ! apache_apply; then
-      rollback_install
-      pause; return
-    fi
-    ok "Apache is running on port 80."
-  fi
+  disable_default_site
 
-  # Stage 2: HTTPS certificate and final Apache configuration.
-  if [[ "$CERT_METHOD" != "none" ]]; then
-    step "Step 4 of 4 — SSL certificate"
-    if ! obtain_certificate; then
-      rollback_install
-      pause; return
-    fi
-    if [[ "$CERT_METHOD" == "http01" || "$CERT_METHOD" == "cloudflare" ]]; then
-      install_deploy_hook
-    fi
+  case "$CERT_METHOD" in
+    selfsigned)
+      if ! create_self_signed_cert "$PUBLIC_HOST"; then rollback_install; pause; return; fi
+      write_ports_conf "$HTTPS_PORT"
+      vhost_ssl_block "$PUBLIC_HOST" "$HTTPS_PORT" "$CERT_FILE" "$KEY_FILE" > "$VHOST_FILE"
+      ;;
 
-    if [[ "$CERT_METHOD" == "http01" ]]; then
+    http01)
+      # Stage 1: plain HTTP on port 80 so Let's Encrypt can reach the challenge file.
       write_ports_conf 80 "$HTTPS_PORT"
+      vhost_app_block "$DOMAIN" 80 > "$VHOST_FILE"
+      activate_site
+      if ! apache_apply; then rollback_install; pause; return; fi
+      # Stage 2: certificate, then HTTPS on the chosen port with a redirect from port 80.
+      if ! obtain_certificate; then rollback_install; pause; return; fi
+      install_deploy_hook
       {
         vhost_redirect_block "$DOMAIN" "$(https_base "$DOMAIN" "$HTTPS_PORT")"
-        vhost_ssl_block "$DOMAIN" "$HTTPS_PORT"
+        vhost_ssl_block "$DOMAIN" "$HTTPS_PORT" "$CERT_FILE" "$KEY_FILE"
       } > "$VHOST_FILE"
-    else
-      write_ports_conf "$HTTPS_PORT"
-      vhost_ssl_block "$DOMAIN" "$HTTPS_PORT" > "$VHOST_FILE"
-    fi
-    activate_site
+      write_ports_conf 80 "$HTTPS_PORT"
+      ;;
 
-    if ! apache_apply; then
-      rollback_install
-      pause; return
-    fi
-    ok "HTTPS is active on port ${HTTPS_PORT}."
+    cloudflare|manual)
+      if ! obtain_certificate; then rollback_install; pause; return; fi
+      if [[ "$CERT_METHOD" == "cloudflare" ]]; then
+        install_deploy_hook
+      fi
+      write_ports_conf "$HTTPS_PORT"
+      vhost_ssl_block "$DOMAIN" "$HTTPS_PORT" "$CERT_FILE" "$KEY_FILE" > "$VHOST_FILE"
+      ;;
+  esac
+
+  activate_site
+  if ! apache_apply; then
+    rollback_install
+    pause; return
   fi
+  ok "HTTPS is active on port ${HTTPS_PORT}."
 
   step "Verification"
   health_check
@@ -896,10 +938,12 @@ do_uninstall() {
   a2dissite "${VHOST_NAME}.conf" >>"$LOG_FILE" 2>&1
   rm -f "$VHOST_FILE"
   restore_ports_conf
+  restore_default_site
   if apache2ctl configtest >>"$LOG_FILE" 2>&1 && systemctl is-active --quiet apache2; then
     systemctl reload apache2 >>"$LOG_FILE" 2>&1
   fi
   rm -rf "$INSTALL_DIR"
+  rm -rf "$SELF_SIGNED_DIR"
   ok "Bot files and Apache site removed."
 
   if [[ -n "$host" && -d "/etc/letsencrypt/live/${host}" ]]; then
@@ -1002,20 +1046,20 @@ do_logs() {
       pause ;;
     2)
       echo
-      if [[ -f "/var/log/apache2/${VHOST_NAME}-error.log" ]]; then
-        tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-error.log"
-      elif [[ -f "/var/log/apache2/${VHOST_NAME}-ssl-error.log" ]]; then
+      if [[ -f "/var/log/apache2/${VHOST_NAME}-ssl-error.log" ]]; then
         tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-ssl-error.log"
+      elif [[ -f "/var/log/apache2/${VHOST_NAME}-error.log" ]]; then
+        tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-error.log"
       else
         warn "No bot error log found."
       fi
       pause ;;
     3)
       echo
-      if [[ -f "/var/log/apache2/${VHOST_NAME}-access.log" ]]; then
-        tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-access.log"
-      elif [[ -f "/var/log/apache2/${VHOST_NAME}-ssl-access.log" ]]; then
+      if [[ -f "/var/log/apache2/${VHOST_NAME}-ssl-access.log" ]]; then
         tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-ssl-access.log"
+      elif [[ -f "/var/log/apache2/${VHOST_NAME}-access.log" ]]; then
+        tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-access.log"
       else
         warn "No bot access log found."
       fi

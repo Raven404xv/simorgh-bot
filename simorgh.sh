@@ -931,6 +931,12 @@ do_install() {
   fi
   mark_safe
   patch_htaccess || { rollback_install; pause; return; }
+  # Telegram accepts a self-signed certificate only when it is uploaded with setWebhook.
+  # The bot's installer reads it from storage/ (which the web server never serves).
+  if [[ "$CERT_METHOD" == "selfsigned" && -f "$CERT_FILE" ]]; then
+    mkdir -p "$INSTALL_DIR/storage"
+    cp "$CERT_FILE" "$INSTALL_DIR/storage/webhook-cert.pem"
+  fi
   fix_permissions
   ok "Bot files are in place."
 

@@ -428,6 +428,34 @@ apache_apply() {
   return 0
 }
 
+# Apache does not allow <DirectoryMatch> inside .htaccess, which causes HTTP 500 on every request.
+# The same protection is provided with a RewriteRule, which is allowed there.
+patch_htaccess() {
+  local f="$INSTALL_DIR/.htaccess"
+  [[ -f "$f" ]] || return 0
+  if ! grep -q 'DirectoryMatch' "$f"; then
+    return 0
+  fi
+  if python3 - "$f" <<'PATCH_PY' >>"$LOG_FILE" 2>&1
+import re, sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+text = re.sub(r'<DirectoryMatch\s+"[^"]*">.*?</DirectoryMatch>[ \t]*\n?', '', text, flags=re.S)
+rule = "RewriteRule ^(src|storage|" + chr(92) + ".git)(/|$) - [F,L]" + chr(10)
+if 'RewriteEngine On' in text:
+    text = text.replace('RewriteEngine On\n', 'RewriteEngine On\n' + rule, 1)
+else:
+    text = 'RewriteEngine On\n' + rule + text
+open(path, "w", encoding="utf-8").write(text)
+PATCH_PY
+  then
+    ok "Applied the Apache compatibility fix to .htaccess."
+    return 0
+  fi
+  err "Could not patch .htaccess. Details: ${LOG_FILE}"
+  return 1
+}
+
 fix_permissions() {
   mkdir -p "$INSTALL_DIR/storage"
   chown -R www-data:www-data "$INSTALL_DIR"
@@ -450,7 +478,7 @@ install_dependencies() {
   fi
   apt-get update -y >>"$LOG_FILE" 2>&1 || rc=1
   if [[ $rc -eq 0 ]]; then
-    apt-get install -y apache2 git curl unzip openssl certbot python3-certbot-apache \
+    apt-get install -y apache2 git curl unzip openssl python3 certbot python3-certbot-apache \
       php libapache2-mod-php php-mysql php-curl php-mbstring php-xml >>"$LOG_FILE" 2>&1 || rc=1
   fi
   if [[ "$created_policy" == true ]]; then
@@ -514,7 +542,11 @@ create_self_signed_cert() { # ip
   info "Creating a self-signed certificate for ${ip}..."
   if openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
       -keyout "$KEY_FILE" -out "$CERT_FILE" \
-      -subj "/CN=${ip}" -addext "subjectAltName=IP:${ip}" >>"$LOG_FILE" 2>&1; then
+      -subj "/CN=${ip}" \
+      -addext "subjectAltName=IP:${ip}" \
+      -addext "basicConstraints=critical,CA:FALSE" \
+      -addext "keyUsage=critical,digitalSignature,keyEncipherment" \
+      -addext "extendedKeyUsage=serverAuth" >>"$LOG_FILE" 2>&1; then
     chmod 600 "$KEY_FILE"
     ok "Self-signed certificate created (valid for 10 years)."
     return 0
@@ -889,6 +921,7 @@ do_install() {
     pause; return
   fi
   mark_safe
+  patch_htaccess || { rollback_install; pause; return; }
   fix_permissions
   ok "Bot files downloaded."
 
@@ -1035,10 +1068,12 @@ do_update() {
   fi
 
   make_backup
+  git -C "$INSTALL_DIR" checkout -- .htaccess >>"$LOG_FILE" 2>&1
   if ! git -C "$INSTALL_DIR" pull --ff-only --quiet origin main >>"$LOG_FILE" 2>&1; then
     err "Update failed. There may be local changes to the files."
     pause; return
   fi
+  patch_htaccess
   fix_permissions
   if ! apache_apply; then
     warn "Apache could not be reloaded. Check the logs (main menu, option 4)."

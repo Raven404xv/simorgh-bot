@@ -12,6 +12,7 @@ set -o pipefail
 
 REPO_URL="https://github.com/Raven404xv/simorgh-bot.git"
 RAW_BASE="https://raw.githubusercontent.com/Raven404xv/simorgh-bot/main"
+COMMAND_PATH="/usr/local/bin/simorgh"
 INSTALL_DIR="/var/www/simorgh-bot"
 VHOST_NAME="simorgh-bot"
 VHOST_FILE="/etc/apache2/sites-available/${VHOST_NAME}.conf"
@@ -29,7 +30,7 @@ ok()    { echo -e "  ${C_GREEN}✔${C_RESET} $*" >&2; }
 warn()  { echo -e "  ${C_YELLOW}⚠${C_RESET} $*" >&2; }
 err()   { echo -e "  ${C_RED}✘${C_RESET} $*" >&2; }
 info()  { echo -e "  ${C_CYAN}➜${C_RESET} $*" >&2; }
-pause() { echo; read -r -p "  برای ادامه Enter بزنید..." _; }
+pause() { echo; read -r -p "  Press Enter to continue..." _; }
 
 ask_yes_no() {
   local answer
@@ -38,26 +39,42 @@ ask_yes_no() {
     case "${answer,,}" in
       y|yes) return 0 ;;
       n|no)  return 1 ;;
-      *) warn "فقط y یا n وارد کنید." ;;
+      *) warn "Please enter y or n." ;;
     esac
   done
 }
 
 require_root() {
   if [[ $EUID -ne 0 ]]; then
-    err "این اسکریپت باید با sudo اجرا شود:  sudo simorgh"
+    err "This script must be run with sudo:  sudo simorgh"
     exit 1
   fi
 }
 
 require_apt() {
   if ! command -v apt-get >/dev/null 2>&1; then
-    err "این اسکریپت فقط روی Ubuntu و Debian پشتیبانی می‌شود."
+    err "This script only supports Ubuntu and Debian."
     exit 1
   fi
 }
 
-# ---------- نسخه ----------
+# ---------- Self-install as the 'simorgh' command ----------
+install_self() {
+  local self
+  self=$(readlink -f "$0" 2>/dev/null)
+  if [[ "$self" != "$COMMAND_PATH" ]]; then
+    info "Installing the 'simorgh' command..."
+    if curl -fsSL --max-time 30 "${RAW_BASE}/simorgh.sh" -o "$COMMAND_PATH" 2>/dev/null; then
+      chmod +x "$COMMAND_PATH"
+      ok "Command installed. From now on, run: sudo simorgh"
+      exec "$COMMAND_PATH"
+    else
+      warn "Could not install the 'simorgh' command. Check the internet connection."
+    fi
+  fi
+}
+
+# ---------- Version ----------
 parse_version() {
   sed -n "s/^define('SB_VERSION', '\([^']*\)');.*/\1/p" | head -n 1
 }
@@ -71,7 +88,7 @@ fetch_remote_version() {
   curl -fsSL --max-time 15 "${RAW_BASE}/src/bootstrap.php" 2>/dev/null | parse_version
 }
 
-# ---------- وضعیت و اعتبارسنجی ----------
+# ---------- Status and validation ----------
 is_installed() {
   [[ -d "$INSTALL_DIR/.git" && -f "$INSTALL_DIR/src/bootstrap.php" ]]
 }
@@ -87,13 +104,13 @@ valid_email() {
 ask_domain() {
   local d
   while true; do
-    read -r -p "  دامنه‌ی ربات (مثلاً bot.example.com): " d
+    read -r -p "  Bot domain (e.g. bot.example.com): " d
     d="${d,,}"
     if valid_domain "$d"; then
       echo "$d"
       return 0
     fi
-    warn "دامنه‌ی معتبر وارد کنید، بدون http:// و بدون /."
+    warn "Enter a valid domain, without http:// and without a trailing /."
   done
 }
 
@@ -110,44 +127,44 @@ show_banner() {
   echo "   ║              Server Manager Tool             ║"
   echo "   ╚══════════════════════════════════════════════╝"
   echo -e "${C_RESET}"
-  echo -e "   ${C_BOLD}کانال :${C_RESET} ${CHANNEL_URL}"
-  echo -e "   ${C_BOLD}گروه  :${C_RESET} ${GROUP_URL}"
+  echo -e "   ${C_BOLD}Channel:${C_RESET} ${CHANNEL_URL}"
+  echo -e "   ${C_BOLD}Group  :${C_RESET} ${GROUP_URL}"
   echo
   if is_installed; then
     local_ver=$(read_local_version)
-    echo -e "   ${C_BOLD}وضعیت:${C_RESET} ${C_GREEN}نصب شده${C_RESET}"
-    echo -e "   ${C_BOLD}نسخه :${C_RESET} v${local_ver:-نامشخص}"
+    echo -e "   ${C_BOLD}Status :${C_RESET} ${C_GREEN}Installed${C_RESET}"
+    echo -e "   ${C_BOLD}Version:${C_RESET} v${local_ver:-unknown}"
     if [[ -n "$REMOTE_VERSION" && -n "$local_ver" && "$REMOTE_VERSION" != "$local_ver" ]]; then
-      echo -e "   ${C_YELLOW}نسخه‌ی جدید v${REMOTE_VERSION} موجود است. گزینه‌ی ۳ را بزنید.${C_RESET}"
+      echo -e "   ${C_YELLOW}New version v${REMOTE_VERSION} is available. Choose option 3.${C_RESET}"
     fi
   else
-    echo -e "   ${C_BOLD}وضعیت:${C_RESET} ${C_RED}نصب نشده${C_RESET}"
-    [[ -n "$REMOTE_VERSION" ]] && echo -e "   ${C_BOLD}نسخه :${C_RESET} v${REMOTE_VERSION} (آخرین نسخه)"
+    echo -e "   ${C_BOLD}Status :${C_RESET} ${C_RED}Not installed${C_RESET}"
+    [[ -n "$REMOTE_VERSION" ]] && echo -e "   ${C_BOLD}Version:${C_RESET} v${REMOTE_VERSION} (latest)"
   fi
   echo
 }
 
-# ---------- نصب پیش‌نیازها و فایل‌های سرور ----------
+# ---------- Dependencies and server setup ----------
 install_dependencies() {
-  info "نصب پیش‌نیازها (Apache، PHP، Git، Certbot). ممکن است چند دقیقه طول بکشد..."
+  info "Installing dependencies (Apache, PHP, Git, Certbot). This may take a few minutes..."
   export DEBIAN_FRONTEND=noninteractive
   if ! apt-get update -y >/dev/null 2>&1; then
-    err "apt-get update ناموفق بود."
+    err "apt-get update failed."
     return 1
   fi
   if ! apt-get install -y apache2 git curl unzip certbot python3-certbot-apache \
       php libapache2-mod-php php-mysql php-curl php-mbstring php-xml >/dev/null 2>&1; then
-    err "نصب پیش‌نیازها ناموفق بود."
+    err "Dependency installation failed."
     return 1
   fi
   if ! php -r 'exit(PHP_VERSION_ID >= 80000 ? 0 : 1);'; then
-    err "نسخه‌ی PHP این سرور کمتر از 8.0 است. ربات به PHP 8.0 یا جدیدتر نیاز دارد."
+    err "This server's PHP version is below 8.0. The bot requires PHP 8.0 or newer."
     return 1
   fi
   a2enmod rewrite headers >/dev/null 2>&1
   systemctl enable apache2 >/dev/null 2>&1
   systemctl restart apache2 >/dev/null 2>&1
-  ok "پیش‌نیازها آماده است."
+  ok "Dependencies are ready."
   return 0
 }
 
@@ -175,7 +192,7 @@ write_vhost() {
 EOF
   a2ensite "${VHOST_NAME}.conf" >/dev/null 2>&1
   if ! apache2ctl configtest >/dev/null 2>&1; then
-    err "تنظیمات Apache نامعتبر است."
+    err "Apache configuration is invalid."
     return 1
   fi
   systemctl reload apache2
@@ -185,21 +202,21 @@ EOF
 setup_ssl() {
   local domain="$1" email
   while true; do
-    read -r -p "  ایمیل برای Let's Encrypt: " email
+    read -r -p "  Email for Let's Encrypt: " email
     valid_email "$email" && break
-    warn "ایمیل معتبر وارد کنید."
+    warn "Enter a valid email address."
   done
-  info "دریافت گواهی SSL برای ${domain} ..."
+  info "Requesting an SSL certificate for ${domain} ..."
   if certbot --apache -d "$domain" -m "$email" --agree-tos --non-interactive --redirect >/dev/null 2>&1; then
-    ok "گواهی SSL با موفقیت فعال شد."
+    ok "SSL certificate is active."
     return 0
   fi
-  err "دریافت گواهی SSL ناموفق بود."
-  warn "مطمئن شوید رکورد A دامنه به IP این سرور اشاره می‌کند و پورت‌های 80 و 443 باز هستند."
+  err "SSL certificate request failed."
+  warn "Make sure the domain's A record points to this server's IP and ports 80 and 443 are open."
   return 1
 }
 
-# ---------- هارد اکسترنال ----------
+# ---------- External drive ----------
 choose_external_drive() {
   local mounts=() m n i dest
   while IFS= read -r m; do
@@ -207,30 +224,30 @@ choose_external_drive() {
   done < <(findmnt -rn -o TARGET 2>/dev/null | grep -E '^/(media|mnt)/' | sort -u)
 
   if [[ ${#mounts[@]} -eq 0 ]]; then
-    warn "هارد اکسترنال متصل پیدا نشد. فایل اطلاعات در ${INFO_FILE} است."
+    warn "No external drive detected. The install info is saved at ${INFO_FILE}."
     return 1
   fi
 
-  echo "  درایوهای متصل:"
+  echo "  Connected drives:"
   i=1
   for m in "${mounts[@]}"; do
     echo "    ${i}) ${m}"
     i=$((i + 1))
   done
   echo
-  read -r -p "  شماره‌ی درایو برای کپی اطلاعات (Enter = رد شدن): " n
+  read -r -p "  Drive number to copy the install info to (Enter = skip): " n
   [[ -z "$n" ]] && return 1
   if ! [[ "$n" =~ ^[0-9]+$ ]] || (( n < 1 || n > ${#mounts[@]} )); then
-    warn "شماره‌ی نامعتبر است."
+    warn "Invalid drive number."
     return 1
   fi
   dest="${mounts[$((n - 1))]}/simorgh-bot"
   if mkdir -p "$dest" && cp "$INFO_FILE" "$dest/" 2>/dev/null; then
     sync
-    ok "اطلاعات نصب در ${dest}/ کپی شد."
+    ok "Install info copied to ${dest}/"
     return 0
   fi
-  err "کپی روی درایو انجام نشد. فایل را از ${INFO_FILE} دستی منتقل کنید."
+  err "Could not copy to the drive. Copy ${INFO_FILE} manually."
   return 1
 }
 
@@ -238,18 +255,18 @@ show_success() {
   local url="$1" ver
   ver=$(read_local_version)
   echo
-  echo -e "  ${C_GREEN}${C_BOLD}ربات (نسخه v${ver:-?}) با موفقیت اجرا شد.${C_RESET}"
+  echo -e "  ${C_GREEN}${C_BOLD}The bot (v${ver:-?}) has been successfully deployed.${C_RESET}"
   echo
-  echo -e "  ${C_BOLD}۱) آدرس نصب:${C_RESET}"
+  echo -e "  ${C_BOLD}1) Installation address:${C_RESET}"
   echo -e "     ${C_CYAN}${url}/install.php${C_RESET}"
   echo
-  echo -e "  ${C_BOLD}۲) ورود و تکمیل نصب:${C_RESET}"
-  echo "     - آدرس بالا را در مرورگر باز کنید."
-  echo "     - وارد شوید و مشخصات ربات را وارد کنید:"
-  echo "       توکن ربات (از BotFather)، شناسه‌ی عددی ادمین،"
-  echo "       مشخصات دیتابیس MySQL، نام کاربری و رمز ورود به پنل."
+  echo -e "  ${C_BOLD}2) Log in and complete the setup:${C_RESET}"
+  echo "     - Open the address above in your browser."
+  echo "     - Log in and enter the bot details:"
+  echo "       Bot token (from BotFather), numeric admin ID,"
+  echo "       MySQL database details, and panel username and password."
   echo
-  echo -e "  ${C_BOLD}۳) امنیت:${C_RESET} بعد از نصب، فایل‌های install.php و selftest.php را از سرور حذف کنید."
+  echo -e "  ${C_BOLD}3) Security:${C_RESET} After setup, delete install.php and selftest.php from the server."
   echo
 
   cat > "$INFO_FILE" <<EOF
@@ -261,23 +278,23 @@ Channel     : ${CHANNEL_URL}
 Group       : ${GROUP_URL}
 EOF
   chmod 600 "$INFO_FILE"
-  ok "اطلاعات نصب در ${INFO_FILE} ذخیره شد."
+  ok "Install info saved to ${INFO_FILE}"
   choose_external_drive
 }
 
-# ---------- گزینه‌ی ۱: نصب ----------
+# ---------- Option 1: Install ----------
 do_install() {
   show_banner
   if is_installed; then
-    warn "ربات از قبل نصب است. برای به‌روزرسانی گزینه‌ی ۳ را بزنید."
+    warn "The bot is already installed. Use option 3 to update it."
     pause; return
   fi
   if [[ -e "$INSTALL_DIR" ]]; then
-    err "مسیر ${INSTALL_DIR} وجود دارد ولی نصب کامل نیست. آن را بررسی یا حذف کنید."
+    err "${INSTALL_DIR} exists but the installation is incomplete. Check or remove it first."
     pause; return
   fi
   if [[ -z "$REMOTE_VERSION" ]]; then
-    err "اتصال به GitHub برقرار نشد. اینترنت سرور را بررسی کنید."
+    err "Could not reach GitHub. Check the server's internet connection."
     pause; return
   fi
 
@@ -285,40 +302,40 @@ do_install() {
 
   echo
   local host="" ssl_wanted=false
-  if ask_yes_no "آیا برای ربات گواهی SSL (HTTPS) دریافت شود؟ (تلگرام به HTTPS نیاز دارد)"; then
+  if ask_yes_no "Do you want an SSL certificate (HTTPS) for the bot? (Telegram requires HTTPS)"; then
     ssl_wanted=true
     host=$(ask_domain)
   else
     host=$(hostname -I 2>/dev/null | awk '{print $1}')
     if [[ -z "$host" ]]; then
-      err "IP سرور پیدا نشد."
+      err "Could not detect the server IP."
       pause; return
     fi
-    warn "بدون SSL نصب می‌شود. آدرس موقت: http://${host}"
-    warn "وب‌هوک تلگرام فقط با HTTPS کار می‌کند. بعداً SSL را اضافه کنید."
+    warn "Installing without SSL. Temporary address: http://${host}"
+    warn "Telegram webhooks only work over HTTPS. Add SSL later."
   fi
 
-  info "دریافت کد ربات (v${REMOTE_VERSION}) از GitHub..."
+  info "Downloading the bot code (v${REMOTE_VERSION}) from GitHub..."
   if ! git clone --quiet "$REPO_URL" "$INSTALL_DIR"; then
-    err "کلون از GitHub ناموفق بود. اتصال اینترنت را بررسی کنید."
+    err "Cloning from GitHub failed. Check the internet connection."
     rm -rf "$INSTALL_DIR"
     pause; return
   fi
   mark_safe
   fix_permissions
-  ok "فایل‌های ربات دریافت شد."
+  ok "Bot files downloaded."
 
   if ! write_vhost "$host"; then
     pause; return
   fi
-  ok "تنظیمات Apache انجام شد."
+  ok "Apache configured."
 
   local scheme="http"
   if $ssl_wanted; then
     if setup_ssl "$host"; then
       scheme="https"
     else
-      warn "نصب بدون HTTPS ادامه می‌یابد. تا فعال شدن SSL، تلگرام به ربات پیام نمی‌دهد."
+      warn "Continuing without HTTPS. Telegram will not reach the bot until SSL is active."
     fi
   fi
 
@@ -326,7 +343,7 @@ do_install() {
   pause
 }
 
-# ---------- پشتیبان‌گیری ----------
+# ---------- Backup ----------
 make_backup() {
   mkdir -p "$BACKUP_DIR"
   local file="$BACKUP_DIR/simorgh-$(date +%Y%m%d-%H%M%S).tar.gz"
@@ -335,34 +352,34 @@ make_backup() {
   [[ -f "$INSTALL_DIR/installed.lock" ]] && items+=("installed.lock")
   [[ -d "$INSTALL_DIR/storage" ]] && items+=("storage")
   if [[ ${#items[@]} -eq 0 ]]; then
-    warn "فایلی برای پشتیبان‌گیری پیدا نشد."
+    warn "No files found to back up."
     return 0
   fi
   if tar -czf "$file" -C "$INSTALL_DIR" "${items[@]}" 2>/dev/null; then
     chmod 600 "$file"
-    ok "پشتیبان ذخیره شد: ${file}"
+    ok "Backup saved: ${file}"
     return 0
   fi
-  err "پشتیبان‌گیری ناموفق بود."
+  err "Backup failed."
   return 1
 }
 
-# ---------- گزینه‌ی ۲: حذف کامل ----------
+# ---------- Option 2: Remove ----------
 do_uninstall() {
   show_banner
   if ! is_installed; then
-    warn "ربات نصب نیست."
+    warn "The bot is not installed."
     pause; return
   fi
 
-  warn "این کار کد ربات، تنظیمات Apache و پوشه‌ی storage را حذف می‌کند."
-  if ! ask_yes_no "آیا ربات کاملاً حذف شود؟ (y = حذف، n = بازگشت به منو)"; then
-    info "بازگشت به منوی اصلی."
+  warn "This removes the bot code, the Apache configuration and the storage folder."
+  if ! ask_yes_no "Remove the bot completely? (y = remove, n = back to menu)"; then
+    info "Returning to the main menu."
     pause; return
   fi
 
   if ! make_backup; then
-    ask_yes_no "پشتیبان ساخته نشد. باز هم ادامه می‌دهید؟" || { info "حذف لغو شد."; pause; return; }
+    ask_yes_no "No backup was created. Continue anyway?" || { info "Removal cancelled."; pause; return; }
   fi
 
   local host="" certs=""
@@ -374,38 +391,38 @@ do_uninstall() {
   rm -f "$VHOST_FILE"
   systemctl reload apache2 >/dev/null 2>&1
   rm -rf "$INSTALL_DIR"
-  ok "فایل‌های ربات و تنظیمات Apache حذف شد."
+  ok "Bot files and Apache configuration removed."
 
   if [[ -n "$host" ]]; then
     certs=$(certbot certificates 2>/dev/null)
     if grep -qF "Domains: ${host}" <<< "$certs"; then
-      if ask_yes_no "گواهی SSL دامنه‌ی ${host} هم حذف شود؟"; then
+      if ask_yes_no "Also remove the SSL certificate for ${host}?"; then
         if certbot delete --cert-name "$host" --non-interactive >/dev/null 2>&1; then
-          ok "گواهی SSL حذف شد."
+          ok "SSL certificate removed."
         else
-          warn "حذف گواهی ناموفق بود."
+          warn "Could not remove the SSL certificate."
         fi
       fi
     fi
   fi
 
-  warn "دیتابیس MySQL حذف نشد. در صورت نیاز از phpMyAdmin آن را حذف کنید."
-  ok "حذف ربات انجام شد."
+  warn "The MySQL database was not removed. Delete it from phpMyAdmin if needed."
+  ok "Bot removal complete."
   pause
 }
 
-# ---------- گزینه‌ی ۳: به‌روزرسانی ----------
+# ---------- Option 3: Update ----------
 do_update() {
   show_banner
   if ! is_installed; then
-    warn "ربات نصب نیست."
+    warn "The bot is not installed."
     pause; return
   fi
 
   mark_safe
-  info "بررسی نسخه‌ی جدید..."
+  info "Checking for a new version..."
   if ! git -C "$INSTALL_DIR" fetch --quiet origin main; then
-    err "بررسی به‌روزرسانی ناموفق بود. اتصال اینترنت را بررسی کنید."
+    err "Update check failed. Check the internet connection."
     pause; return
   fi
 
@@ -416,62 +433,62 @@ do_update() {
   new_ver=$(git -C "$INSTALL_DIR" show origin/main:src/bootstrap.php 2>/dev/null | parse_version)
 
   if [[ "$local_rev" == "$remote_rev" ]]; then
-    ok "ربات به‌روز است (v${local_ver:-?})."
+    ok "The bot is up to date (v${local_ver:-?})."
     pause; return
   fi
 
   echo
-  echo -e "  ${C_BOLD}نسخه‌ی فعلی :${C_RESET} v${local_ver:-?}"
-  echo -e "  ${C_BOLD}نسخه‌ی جدید:${C_RESET} v${new_ver:-?}"
+  echo -e "  ${C_BOLD}Current version:${C_RESET} v${local_ver:-?}"
+  echo -e "  ${C_BOLD}New version    :${C_RESET} v${new_ver:-?}"
   echo
-  info "تغییرات جدید:"
+  info "Recent changes:"
   git -C "$INSTALL_DIR" log --oneline HEAD..origin/main | head -n 15 | sed 's/^/     /' >&2
   echo
 
-  if ! ask_yes_no "آیا به‌روزرسانی انجام شود؟"; then
-    info "به‌روزرسانی لغو شد."
+  if ! ask_yes_no "Apply the update now?"; then
+    info "Update cancelled."
     pause; return
   fi
 
   make_backup
   if ! git -C "$INSTALL_DIR" pull --ff-only --quiet origin main; then
-    err "به‌روزرسانی ناموفق بود. احتمالاً تغییرات محلی در فایل‌ها وجود دارد."
+    err "Update failed. There may be local changes to the files."
     pause; return
   fi
   fix_permissions
   systemctl reload apache2 >/dev/null 2>&1
   REMOTE_VERSION="${new_ver:-$REMOTE_VERSION}"
-  ok "ربات به نسخه‌ی v${new_ver:-?} به‌روز شد."
+  ok "The bot has been updated to v${new_ver:-?}."
 
   if [[ -f "$INSTALL_DIR/install.php" ]]; then
-    warn "فایل install.php دوباره آمده است. بعد از بررسی، آن را از سرور حذف کنید."
+    warn "install.php came back with the update. Delete it from the server after checking."
   fi
   pause
 }
 
-# ---------- گزینه‌ی ۴: لاگ‌ها ----------
+# ---------- Option 4: Logs ----------
 do_logs() {
   show_banner
   if ! is_installed; then
-    warn "ربات نصب نیست."
+    warn "The bot is not installed."
     pause; return
   fi
 
-  echo "    1) لاگ برنامه"
-  echo "    2) لاگ خطای Apache"
-  echo "    3) لاگ دسترسی Apache"
-  echo "    4) بازگشت"
+  echo "    1) Application log"
+  echo "    2) Apache error log"
+  echo "    3) Apache access log"
+  echo "    4) Back"
   echo
-  read -r -p "  انتخاب [1-4]: " choice
+  read -r -p "  Select [1-4]: " choice
   case "$choice" in
     1)
       local file
       file=$(ls -t "$INSTALL_DIR"/storage/logs/*.log 2>/dev/null | head -n 1)
       echo
       if [[ -z "$file" ]]; then
-        warn "فایل لاگ برنامه پیدا نشد."
+        warn "No application log file found."
       else
-        info "فایل: ${file}"
+        info "File: ${file}"
         tail -n "$LOG_LINES" "$file"
       fi
       pause ;;
@@ -480,7 +497,7 @@ do_logs() {
       if [[ -f "/var/log/apache2/${VHOST_NAME}-error.log" ]]; then
         tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-error.log"
       else
-        warn "لاگ خطای ربات پیدا نشد."
+        warn "No bot error log found."
       fi
       pause ;;
     3)
@@ -488,15 +505,15 @@ do_logs() {
       if [[ -f "/var/log/apache2/${VHOST_NAME}-access.log" ]]; then
         tail -n "$LOG_LINES" "/var/log/apache2/${VHOST_NAME}-access.log"
       else
-        warn "لاگ دسترسی ربات پیدا نشد."
+        warn "No bot access log found."
       fi
       pause ;;
     4) return ;;
-    *) warn "گزینه‌ی نامعتبر است."; sleep 1 ;;
+    *) warn "Invalid option."; sleep 1 ;;
   esac
 }
 
-# ---------- خداحافظی ----------
+# ---------- Farewell ----------
 farewell() {
   clear
   echo -e "${C_CYAN}${C_BOLD}"
@@ -509,9 +526,9 @@ farewell() {
         _____/____|____\_____
 ART
   echo -e "${C_RESET}"
-  echo -e "   ${C_BOLD}سیمرغ همیشه ناظر است.${C_RESET}"
+  echo -e "   ${C_BOLD}Simorgh is always watching.${C_RESET}"
   echo
-  echo -e "   هر زمان به سیمرغ نیاز داشتی، فقط این را بزن:"
+  echo -e "   Whenever you need Simorgh, just run:"
   echo
   echo -e "       ${C_YELLOW}${C_BOLD}sudo simorgh${C_RESET}"
   echo
@@ -520,24 +537,24 @@ ART
   echo
 }
 
-# ---------- منوی اصلی ----------
+# ---------- Main menu ----------
 main_menu() {
   while true; do
     show_banner
-    echo "    1) نصب ربات"
-    echo "    2) حذف کامل ربات"
-    echo "    3) به‌روزرسانی ربات"
-    echo "    4) نمایش لاگ‌ها"
-    echo "    5) خروج"
+    echo "    1) Install the bot"
+    echo "    2) Remove the bot completely"
+    echo "    3) Update the bot"
+    echo "    4) Show logs"
+    echo "    5) Exit"
     echo
-    read -r -p "  گزینه را انتخاب کنید [1-5]: " choice
+    read -r -p "  Select an option [1-5]: " choice
     case "$choice" in
       1) do_install ;;
       2) do_uninstall ;;
       3) do_update ;;
       4) do_logs ;;
       5) farewell; exit 0 ;;
-      *) warn "گزینه‌ی نامعتبر است."; sleep 1 ;;
+      *) warn "Invalid option."; sleep 1 ;;
     esac
   done
 }
@@ -545,9 +562,10 @@ main_menu() {
 main() {
   require_root
   require_apt
-  trap 'echo; warn "عملیات لغو شد."; farewell; exit 130' INT
+  trap 'echo; warn "Operation cancelled."; farewell; exit 130' INT
+  install_self
   show_banner
-  info "دریافت اطلاعات نسخه از GitHub..."
+  info "Fetching version information from GitHub..."
   REMOTE_VERSION=$(fetch_remote_version)
   main_menu
 }

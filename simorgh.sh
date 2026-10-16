@@ -1184,6 +1184,90 @@ on_interrupt() {
   exit 130
 }
 
+# ---------- Telegram connection fix ----------
+# Reads one value from the bot's config.php. The value is passed through the environment, never printed.
+config_value() { # key
+  [[ -f "$INSTALL_DIR/config.php" ]] || return 0
+  SB_CONFIG="$INSTALL_DIR/config.php" SB_KEY="$1" php -r '$c = require getenv("SB_CONFIG"); $k = getenv("SB_KEY"); echo isset($c[$k]) ? (string) $c[$k] : "";' 2>/dev/null
+}
+
+# Shows the webhook status from Telegram, without the bot token.
+show_webhook_status() {
+  local token="$1" info url pending last_error
+  info=$(curl -sS --max-time 20 "https://api.telegram.org/bot${token}/getWebhookInfo" 2>/dev/null)
+  url=$(sed -n 's/.*"url":"\([^"]*\)".*/\1/p' <<< "$info")
+  pending=$(sed -n 's/.*"pending_update_count":\([0-9]*\).*/\1/p' <<< "$info")
+  last_error=$(sed -n 's/.*"last_error_message":"\([^"]*\)".*/\1/p' <<< "$info")
+  echo
+  echo -e "  ${C_BOLD}Telegram webhook status${C_RESET}"
+  echo "    Address          : ${url:-not set}"
+  echo "    Waiting messages : ${pending:-0}"
+  if [[ -n "$last_error" ]]; then
+    warn "Telegram reports an error: ${last_error}"
+  else
+    ok "Telegram has no errors for this bot."
+  fi
+}
+
+fix_telegram_connection() {
+  show_banner_short
+  if ! is_installed; then
+    warn "The bot is not installed yet. Choose Install first."
+    pause; return
+  fi
+  if [[ ! -f "$INSTALL_DIR/config.php" ]]; then
+    warn "Finish the setup page first (install.php in your browser), then come back here."
+    pause; return
+  fi
+
+  local token secret base host cert_file="" webhook_url reply
+  token=$(config_value bot_token)
+  secret=$(config_value webhook_secret)
+  base=$(config_value webapp_url)
+  if [[ -z "$token" || -z "$secret" || -z "$base" ]]; then
+    err "The bot settings are incomplete. Finish the setup page first."
+    pause; return
+  fi
+
+  host=$(sed -E 's#^https?://([^/:]+).*#\1#' <<< "$base")
+  if [[ "$host" =~ ^[0-9]+(\.[0-9]+){3}$ ]]; then
+    if [[ -f "${SELF_SIGNED_DIR}/${host}.crt" ]]; then
+      cert_file="${SELF_SIGNED_DIR}/${host}.crt"
+    elif [[ -f "$INSTALL_DIR/storage/webhook-cert.pem" ]]; then
+      cert_file="$INSTALL_DIR/storage/webhook-cert.pem"
+    else
+      err "The certificate file for ${host} was not found. Reinstall or re-create the certificate."
+      pause; return
+    fi
+  fi
+
+  webhook_url="${base}/webhook.php"
+  info "Registering the webhook at ${webhook_url} ..."
+  local args=(-sS --max-time 40
+    -F "url=${webhook_url}"
+    -F "secret_token=${secret}"
+    -F 'allowed_updates=["message","callback_query"]'
+    -F "drop_pending_updates=true")
+  if [[ -n "$cert_file" ]]; then
+    args+=(-F "certificate=@${cert_file}")
+  fi
+  reply=$(curl "${args[@]}" "https://api.telegram.org/bot${token}/setWebhook" 2>>"$LOG_FILE")
+
+  if grep -Eq '"ok": ?true' <<< "$reply"; then
+    ok "Telegram accepted the webhook."
+  else
+    local desc
+    desc=$(sed -n 's/.*"description":"\([^"]*\)".*/\1/p' <<< "$reply")
+    err "Telegram rejected the webhook: ${desc:-no details}"
+    log "setWebhook reply: ${reply}"
+  fi
+
+  show_webhook_status "$token"
+  echo
+  tip "Now send /start to your bot in Telegram."
+  pause
+}
+
 # ---------- Menu ----------
 show_banner_short() {
   clear
@@ -1221,16 +1305,18 @@ main_menu() {
     echo "    2) Uninstall the bot"
     echo "    3) Update the bot"
     echo "    4) Live logs"
-    echo "    5) Exit"
+    echo "    5) Fix the Telegram connection"
+    echo "    6) Exit"
     echo
-    read -r -p "  Choose an option [1-5]: " choice
+    read -r -p "  Choose an option [1-6]: " choice
     case "$choice" in
       1) do_install ;;
       2) do_uninstall ;;
       3) do_update ;;
       4) show_live_logs ;;
-      5) farewell; exit 0 ;;
-      *) warn "Please choose a number from 1 to 5."; sleep 1 ;;
+      5) fix_telegram_connection ;;
+      6) farewell; exit 0 ;;
+      *) warn "Please choose a number from 1 to 6."; sleep 1 ;;
     esac
   done
 }

@@ -86,8 +86,7 @@
 1. در cPanel بخش **Git™ Version Control** را باز کنید و روی **Create** بزنید.
 2. آدرس مخزن را وارد کنید:
    ```
-
-https://github.com/Raven404xv/simorgh-bot.git
+   https://github.com/Raven404xv/simorgh-bot.git
    ```
 3. مسیر را `public_html/SimorghBot` بگذارید. پوشه‌ی مقصد باید خالی باشد.
 4. روی **Create** بزنید تا کد ربات دریافت شود.

@@ -1,517 +1,752 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مستندات سیمرغ بات — نصب روی هاست cPanel</title>
 <meta name="description" content="راهنمای کامل نصب و راه‌اندازی ربات فروشگاه سیمرغ روی هاست cPanel">
+<title>سیمرغ بات | راهنمای نصب</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <style>
   :root {
-    --bg: #0d1117;
-    --side: #11161d;
-    --card: #161b22;
-    --line: #262e38;
-    --text: #e6edf3;
-    --muted: #8b98a5;
-    --accent: #3fb6a8;
-    --accent-2: #58a6ff;
-    --ok: #3fb950;
-    --warn: #d29922;
-    --danger: #f85149;
-    --code: #0a0e13;
+    --bg: #0b0f14;
+    --panel: #10161e;
+    --card: #141c26;
+    --line: #1f2a36;
+    --text: #e7edf3;
+    --muted: #8795a4;
+    --accent: #2dd4bf;
+    --accent-soft: rgba(45, 212, 191, 0.12);
+    --link: #7dd3fc;
+    --warn: #fbbf24;
+    --warn-soft: rgba(251, 191, 36, 0.10);
+    --danger: #f87171;
+    --danger-soft: rgba(248, 113, 113, 0.10);
+    --ok: #4ade80;
+    --ok-soft: rgba(74, 222, 128, 0.10);
+    --code-bg: #070a0e;
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    --radius: 16px;
   }
+  [data-theme="light"] {
+    --bg: #f6f8fb;
+    --panel: #ffffff;
+    --card: #ffffff;
+    --line: #e3e9f0;
+    --text: #15202b;
+    --muted: #5b6b7c;
+    --accent: #0f9d8a;
+    --accent-soft: rgba(15, 157, 138, 0.10);
+    --link: #0b67b8;
+    --warn: #b7791f;
+    --warn-soft: rgba(183, 121, 31, 0.08);
+    --danger: #c53030;
+    --danger-soft: rgba(197, 48, 48, 0.07);
+    --ok: #2f855a;
+    --ok-soft: rgba(47, 133, 90, 0.08);
+    --code-bg: #0f1720;
+    --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  }
+
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
   body {
     margin: 0;
     font-family: Tahoma, "Vazirmatn", "Segoe UI", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 2;
     font-size: 16px;
+    line-height: 2;
+    color: var(--text);
+    background:
+      radial-gradient(900px 500px at 85% -10%, var(--accent-soft), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+    transition: background-color .3s ease, color .3s ease;
   }
-  a { color: var(--accent-2); text-decoration: none; }
+  a { color: var(--link); text-decoration: none; }
   a:hover { text-decoration: underline; }
+  ::selection { background: var(--accent); color: #04211c; }
 
   /* ---------- Top bar ---------- */
   .topbar {
-    position: sticky; top: 0; z-index: 20;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; padding: 10px 18px;
-    background: rgba(13, 17, 23, 0.92);
-    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 22px;
+    background: var(--bg);
     border-bottom: 1px solid var(--line);
   }
-  .brand { font-weight: bold; color: var(--accent); font-size: 18px; }
-  .topbar .links a { margin-right: 14px; font-size: 14px; }
-  .menu-btn {
-    display: none; background: var(--card); color: var(--text);
-    border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px;
-    font-family: inherit; cursor: pointer;
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .brand .gem {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    color: #fff; font-size: 17px;
   }
+  .brand .logo { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; }
+  .hero-logo {
+    width: 120px; height: 120px; object-fit: contain; margin: 0 auto 14px; display: block;
+    filter: drop-shadow(0 10px 30px rgba(56, 189, 248, .35));
+  }
+  .brand small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; line-height: 1.2; }
+  .top-actions { display: flex; align-items: center; gap: 10px; }
+  .top-actions a.pill {
+    font-size: 14px; padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--text); background: var(--panel);
+  }
+  .top-actions a.pill:hover { border-color: var(--accent); text-decoration: none; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel); color: var(--text);
+    display: grid; place-items: center; font-size: 16px; font-family: inherit;
+  }
+  .icon-btn:hover { border-color: var(--accent); }
+  .menu-btn { display: none; }
 
   /* ---------- Layout ---------- */
-  .layout { display: flex; min-height: calc(100vh - 56px); }
+  .layout { display: flex; align-items: flex-start; }
   aside.side {
-    width: 270px; flex-shrink: 0;
-    background: var(--side);
-    border-left: 1px solid var(--line);
-    padding: 20px 14px;
-    position: sticky; top: 56px; height: calc(100vh - 56px);
+    position: sticky; top: 75px;
+    width: 280px; flex-shrink: 0;
+    height: calc(100vh - 75px);
     overflow-y: auto;
+    padding: 22px 16px 40px;
+    border-left: 1px solid var(--line);
+    background: var(--panel);
   }
-  aside.side h4 { margin: 14px 8px 6px; font-size: 13px; color: var(--muted); font-weight: normal; }
+  .search {
+    width: 100%; padding: 10px 14px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    font-family: inherit; font-size: 14px; margin-bottom: 14px; outline: none;
+  }
+  .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  aside.side h4 {
+    margin: 18px 10px 6px; font-size: 12px; font-weight: 600;
+    color: var(--muted); letter-spacing: .3px;
+  }
   aside.side a {
-    display: block; padding: 7px 12px; border-radius: 8px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; margin: 2px 0; border-radius: 10px;
     color: var(--text); font-size: 15px;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  aside.side a::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--line); flex-shrink: 0; transition: background-color .2s ease;
   }
   aside.side a:hover { background: var(--card); text-decoration: none; }
-  aside.side a.active { background: #15302c; color: var(--accent); }
+  aside.side a.active { background: var(--accent-soft); color: var(--accent); }
+  aside.side a.active::before { background: var(--accent); }
+  aside.side a.hidden { display: none; }
 
-  main { flex: 1; min-width: 0; padding: 28px 34px 80px; max-width: 920px; }
+  main { flex: 1; min-width: 0; padding: 36px 44px 90px; max-width: 980px; }
 
   /* ---------- Hero ---------- */
   .hero {
-    text-align: center;
-    padding: 34px 20px;
+    position: relative; overflow: hidden;
+    padding: 44px 30px; border-radius: 22px;
     border: 1px solid var(--line);
-    border-radius: 18px;
-    background: radial-gradient(circle at top, #15302c 0%, var(--card) 60%);
-    margin-bottom: 26px;
+    background: linear-gradient(160deg, var(--card), var(--panel));
+    box-shadow: var(--shadow);
+    text-align: center;
   }
-  .hero h1 { margin: 0 0 6px; font-size: 30px; color: var(--accent); }
-  .hero p { margin: 4px 0; color: var(--muted); }
-  .hero .actions { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .hero::after {
+    content: ""; position: absolute; inset: auto -20% -60% -20%; height: 120%;
+    background: radial-gradient(closest-side, var(--accent-soft), transparent);
+    pointer-events: none;
+  }
+  .hero .tag {
+    display: inline-block; font-size: 13px; padding: 4px 14px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); margin-bottom: 14px;
+  }
+  .hero h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.4; }
+  .hero p.lead { margin: 0 auto; max-width: 620px; color: var(--muted); font-size: 16px; }
+  .hero .actions { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
   .btn {
-    display: inline-block; padding: 9px 18px; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 15px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 12px; font-size: 15px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--text);
+    transition: transform .15s ease, border-color .2s ease;
   }
-  .btn.primary { background: var(--accent); color: #04201c; border-color: var(--accent); font-weight: bold; }
-  .btn:hover { text-decoration: none; filter: brightness(1.1); }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); border-color: var(--accent); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), #38bdf8);
+    color: #04211c; border-color: transparent; font-weight: 700;
+  }
 
-  .stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
-  .stat {
-    flex: 1; min-width: 150px; text-align: center;
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin: 22px 0 6px;
   }
-  .stat b { display: block; color: var(--accent); font-size: 18px; }
-  .stat span { color: var(--muted); font-size: 13px; }
+  .stat {
+    padding: 16px; border-radius: var(--radius);
+    background: var(--card); border: 1px solid var(--line); text-align: center;
+  }
+  .stat b { display: block; font-size: 20px; color: var(--accent); }
+  .stat span { font-size: 13px; color: var(--muted); }
 
   h2 {
-    font-size: 22px; margin: 42px 0 12px; padding-bottom: 8px;
-    border-bottom: 1px solid var(--line); color: var(--accent);
+    position: relative;
+    margin: 56px 0 14px; padding-bottom: 10px; font-size: 24px;
+    border-bottom: 1px solid var(--line);
   }
-  h3 { font-size: 17px; margin: 22px 0 6px; color: var(--text); }
-  p { margin: 8px 0; }
+  h2::after {
+    content: ""; position: absolute; right: 0; bottom: -1px;
+    width: 64px; height: 2px; background: var(--accent); border-radius: 2px;
+  }
+  h3 { margin: 22px 0 8px; font-size: 18px; }
+  p { margin: 10px 0; }
   ul.list, ol.list { padding-right: 22px; }
   ul.list li, ol.list li { margin: 6px 0; }
-
-  .card {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 16px 18px; margin: 14px 0;
+  .muted { color: var(--muted); }
+  .ltr { direction: ltr; unicode-bidi: isolate; font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+  code {
+    font-family: Consolas, "Courier New", monospace; font-size: .92em;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 1px 6px; border-radius: 6px;
   }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 14px 0; }
-  .grid .card { margin: 0; }
-  .grid .card h4 { margin: 0 0 6px; color: var(--accent); font-size: 16px; }
-  .grid .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.8; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 16px 0; }
+  .feature {
+    padding: 18px; border-radius: var(--radius);
+    background: var(--card); border: 1px solid var(--line);
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .feature:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .feature .ico {
+    width: 40px; height: 40px; border-radius: 12px; margin-bottom: 10px;
+    display: grid; place-items: center; font-size: 19px;
+    background: var(--accent-soft);
+  }
+  .feature h4 { margin: 0 0 6px; font-size: 16px; }
+  .feature p { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.85; }
 
   .callout {
-    border-right: 4px solid var(--accent-2); background: #0f1f33;
-    padding: 12px 16px; border-radius: 10px; margin: 14px 0;
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px; margin: 16px 0; border-radius: 14px;
+    border: 1px solid var(--line); background: var(--card);
   }
-  .callout.warn { border-right-color: var(--warn); background: #2a2213; }
-  .callout.danger { border-right-color: var(--danger); background: #2a1716; }
-  .callout.ok { border-right-color: var(--ok); background: #14261b; }
-  .callout strong { display: block; margin-bottom: 4px; }
+  .callout .ci { font-size: 18px; line-height: 1.6; }
+  .callout .ct { flex: 1; min-width: 0; }
+  .callout strong { display: block; margin-bottom: 2px; }
+  .callout.info { background: var(--accent-soft); border-color: transparent; }
+  .callout.warn { background: var(--warn-soft); border-color: transparent; }
+  .callout.danger { background: var(--danger-soft); border-color: transparent; }
+  .callout.ok { background: var(--ok-soft); border-color: transparent; }
 
-  .step { display: flex; gap: 14px; margin: 18px 0; }
+  .req { width: 100%; border-collapse: separate; border-spacing: 0; margin: 14px 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  .req th, .req td { padding: 12px 14px; text-align: right; vertical-align: top; border-bottom: 1px solid var(--line); }
+  .req tr:last-child td { border-bottom: 0; }
+  .req th { background: var(--panel); font-weight: 600; font-size: 14px; color: var(--muted); }
+  .req td { background: var(--card); font-size: 15px; }
+
+  /* ---------- Steps ---------- */
+  .step {
+    position: relative; display: flex; gap: 18px;
+    margin: 26px 0; padding: 22px; border-radius: 18px;
+    background: var(--card); border: 1px solid var(--line);
+  }
   .step .num {
-    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
-    background: var(--accent); color: #04201c; font-weight: bold;
-    display: flex; align-items: center; justify-content: center; font-size: 17px;
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 14px;
+    display: grid; place-items: center; font-weight: 800; font-size: 18px;
+    background: linear-gradient(135deg, var(--accent), #38bdf8); color: #04211c;
+    box-shadow: 0 8px 24px var(--accent-soft);
   }
   .step .body { flex: 1; min-width: 0; }
-  .step h3 { margin-top: 4px; }
+  .step h3 { margin-top: 2px; }
+  .step .time { font-size: 13px; color: var(--muted); margin-top: -4px; }
 
   .code {
     position: relative; direction: ltr; text-align: left;
-    background: var(--code); border: 1px solid var(--line);
-    border-radius: 10px; margin: 10px 0; padding: 14px 14px 14px;
-    overflow-x: auto;
+    margin: 12px 0; padding: 40px 16px 16px; border-radius: 12px;
+    background: var(--code-bg); border: 1px solid #1d2733; overflow-x: auto;
   }
   .code code {
-    font-family: Consolas, "Courier New", monospace; font-size: 14px;
-    color: #c9d1d9; white-space: pre;
+    display: block; background: none; color: #d6e2ee; padding: 0;
+    white-space: pre; font-size: 14px; line-height: 1.7;
   }
   .copy {
-    position: absolute; top: 8px; left: 8px;
-    background: var(--accent); color: #04201c; border: none; border-radius: 8px;
-    padding: 4px 12px; font-family: inherit; font-size: 13px; cursor: pointer;
+    position: absolute; top: 10px; left: 10px;
+    padding: 4px 12px; border-radius: 8px; border: 1px solid #2a3847;
+    background: #111923; color: #cbd5e1; font-family: inherit; font-size: 12px; cursor: pointer;
   }
+  .copy:hover { border-color: var(--accent); color: var(--accent); }
 
-  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
-  th, td { border: 1px solid var(--line); padding: 9px 11px; text-align: right; vertical-align: top; }
-  th { background: #1c232c; }
-  .ltr { direction: ltr; text-align: left; font-family: Consolas, monospace; }
-  .tag {
-    display: inline-block; padding: 1px 9px; border-radius: 999px;
-    font-size: 12px; background: #1c232c; color: var(--muted); border: 1px solid var(--line);
-  }
+  .fields { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+  .fields th, .fields td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: right; }
+  .fields th { color: var(--muted); font-weight: 600; font-size: 14px; }
 
   .faq details {
+    margin: 10px 0; padding: 14px 18px; border-radius: 14px;
     background: var(--card); border: 1px solid var(--line);
-    border-radius: 12px; padding: 12px 16px; margin: 10px 0;
   }
-  .faq summary { cursor: pointer; font-weight: bold; color: var(--text); }
+  .faq summary { cursor: pointer; font-weight: 700; list-style: none; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; float: left; color: var(--accent); font-size: 18px; }
+  .faq details[open] summary::after { content: "−"; }
   .faq details[open] summary { color: var(--accent); margin-bottom: 8px; }
 
   .footer {
-    margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--line);
-    text-align: center; color: var(--muted); font-size: 14px;
+    margin-top: 70px; padding: 28px 22px; text-align: center;
+    border-radius: 18px; border: 1px solid var(--line); background: var(--panel);
   }
-  .footer a { margin: 0 8px; }
+  .footer .links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 12px 0; }
+  .footer .links a { padding: 8px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); }
+  .footer p { margin: 6px 0; color: var(--muted); font-size: 14px; }
+
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+    padding: 10px 18px; border-radius: 12px; background: var(--text); color: var(--bg);
+    font-size: 14px; opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 60;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, .45); z-index: 25;
+  }
+  .overlay.show { display: block; }
+
+  /* ---------- Reveal on scroll ---------- */
+  .reveal { opacity: 0; transform: translateY(10px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
 
   /* ---------- Mobile ---------- */
-  @media (max-width: 860px) {
-    .menu-btn { display: inline-block; }
+  @media (max-width: 900px) {
+    .menu-btn { display: grid; }
     .layout { display: block; }
     aside.side {
       position: fixed; top: 0; right: 0; bottom: 0; z-index: 30;
-      width: 280px; height: 100vh; transform: translateX(100%);
-      transition: transform .25s ease; box-shadow: -10px 0 30px rgba(0,0,0,.4);
+      width: 290px; height: 100vh; padding-top: 70px;
+      transform: translateX(105%); transition: transform .3s ease;
+      box-shadow: -18px 0 50px rgba(0, 0, 0, .35);
     }
     aside.side.open { transform: translateX(0); }
-    main { padding: 20px 16px 60px; }
-    .hero h1 { font-size: 24px; }
-    .topbar .links { display: none; }
+    main { padding: 22px 16px 70px; }
+    .hero { padding: 32px 18px; }
+    .hero h1 { font-size: 26px; }
+    .top-actions a.pill { display: none; }
+    .step { flex-direction: column; padding: 18px; }
   }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <button class="menu-btn" onclick="toggleMenu()">فهرست</button>
-    <span class="brand">💎 سیمرغ بات</span>
+<header class="topbar">
+  <div class="brand">
+    <button class="icon-btn menu-btn" id="menuBtn" aria-label="فهرست">☰</button>
+    <img class="logo" src="logo-512.png" alt="لوگوی سیمرغ">
+    <div>سیمرغ بات<small>راهنمای نصب</small></div>
   </div>
-  <div class="links">
-    <a href="https://t.me/SimorghFree">کانال</a>
-    <a href="https://t.me/SimorghBotGroup">گروه پشتیبانی</a>
+  <div class="top-actions">
+    <a class="pill" href="https://t.me/SimorghFree" target="_blank" rel="noopener">کانال</a>
+    <a class="pill" href="https://t.me/SimorghBotGroup" target="_blank" rel="noopener">گروه پشتیبانی</a>
+    <button class="icon-btn" id="themeBtn" aria-label="تغییر حالت نمایش" title="تغییر حالت نمایش">◐</button>
   </div>
-</div>
+</header>
+
+<div class="overlay" id="overlay"></div>
 
 <div class="layout">
 
 <aside class="side" id="side">
-  <h4>شروع کار</h4>
+  <input class="search" id="search" type="search" placeholder="جستجو در فهرست..." aria-label="جستجو در فهرست">
+
+  <h4>شروع</h4>
   <a href="#intro">معرفی</a>
   <a href="#requirements">پیش‌نیازها</a>
   <a href="#quickstart">شروع سریع</a>
 
   <h4>نصب روی هاست cPanel</h4>
-  <a href="#step-db">۱. ساخت دیتابیس</a>
-  <a href="#step-bot">۲. ساخت ربات و توکن</a>
-  <a href="#step-files">۳. دریافت فایل‌ها</a>
-  <a href="#step-install">۴. نصب‌کننده</a>
-  <a href="#step-test">۵. تست ربات</a>
-  <a href="#step-secure">۶. امنیت</a>
+  <a href="#step-1">۱. ساخت دیتابیس</a>
+  <a href="#step-2">۲. ساخت ربات و توکن</a>
+  <a href="#step-3">۳. دریافت فایل‌ها</a>
+  <a href="#step-4">۴. اجرای نصب‌کننده</a>
+  <a href="#step-5">۵. تست ربات</a>
+  <a href="#step-6">۶. امنیت بعد از نصب</a>
 
   <h4>پس از نصب</h4>
   <a href="#update">به‌روزرسانی</a>
-  <a href="#config">تنظیمات مهم</a>
+  <a href="#settings">تنظیمات ربات</a>
   <a href="#troubleshoot">عیب‌یابی</a>
-  <a href="#faq">سؤالات متداول</a>
+  <a href="#faq">پرسش‌های متداول</a>
   <a href="#support">پشتیبانی</a>
 </aside>
 
 <main>
 
-<section class="hero" id="intro">
-  <h1>مستندات نصب سیمرغ بات</h1>
-  <p>ربات فروشگاه پنل تلگرام با PHP و MySQL، مناسب هاست اشتراکی cPanel</p>
-  <p>ربات با Webhook کار می‌کند؛ نیازی به فرآیند دائمی یا SSH نیست.</p>
+<section class="hero reveal" id="intro">
+  <img class="hero-logo" src="logo-512.png" alt="لوگوی سیمرغ">
+  <span class="tag">نسخه‌ی ۳.۳.۰</span>
+  <h1>راهنمای نصب سیمرغ بات</h1>
+  <p class="lead">ربات فروشگاه پنل تلگرام با PHP و MySQL، روی هاست اشتراکی cPanel. ربات با Webhook کار می‌کند و به فرآیند دائمی یا دسترسی SSH نیاز ندارد.</p>
   <div class="actions">
-    <a class="btn primary" href="#step-db">شروع نصب</a>
+    <a class="btn primary" href="#step-1">شروع نصب</a>
     <a class="btn" href="#troubleshoot">عیب‌یابی</a>
     <a class="btn" href="https://github.com/Raven404xv/simorgh-bot" target="_blank" rel="noopener">مخزن GitHub</a>
   </div>
 </section>
 
-<div class="stats">
+<div class="stats reveal">
   <div class="stat"><b>۶</b><span>مرحله‌ی نصب</span></div>
-  <div class="stat"><b>۱۵–۲۰</b><span>دقیقه تا راه‌اندازی</span></div>
+  <div class="stat"><b>۱۵ تا ۲۰</b><span>دقیقه تا راه‌اندازی</span></div>
   <div class="stat"><b>PHP 8+</b><span>نسخه‌ی موردنیاز</span></div>
   <div class="stat"><b>cPanel</b><span>هاست اشتراکی</span></div>
 </div>
 
 <h2 id="features">امکانات</h2>
-<div class="grid">
-  <div class="card"><h4>فروش پنل</h4><p>خرید در بازه‌های ۱، ۲ و ۳ ماهه، با پرداخت از کیف پول یا کارت به کارت.</p></div>
-  <div class="card"><h4>کیف پول</h4><p>شارژ با تأیید رسید توسط مدیر. هر رسید فقط یک‌بار اعتبار می‌گیرد.</p></div>
-  <div class="card"><h4>تست رایگان</h4><p>سهمیه‌ی قابل تنظیم، با امکان فعال و غیرفعال کردن از پنل مدیریت.</p></div>
-  <div class="card"><h4>زیرمجموعه‌گیری</h4><p>دعوت کاربران با پاداش برای معرف.</p></div>
-  <div class="card"><h4>تیکت و سؤالات متداول</h4><p>پشتیبانی داخل ربات، با مدیریت از پنل.</p></div>
-  <div class="card"><h4>مینی‌اپ فارسی</h4><p>حالت روشن و تاریک، با احراز هویت امضای رسمی تلگرام.</p></div>
-  <div class="card"><h4>پنل مدیریت</h4><p>محصولات، کارت‌های پرداخت، مدیران، عضویت اجباری و ارسال همگانی.</p></div>
-  <div class="card"><h4>گزارش در گروه</h4><p>گزارش‌های مدیریتی در گروه ادمین، با پشتیبانی از Topics.</p></div>
+<div class="grid reveal">
+  <div class="feature"><div class="ico">🛒</div><h4>فروش پنل</h4><p>خرید در بازه‌های ۱، ۲ و ۳ ماهه، با پرداخت از کیف پول یا کارت به کارت.</p></div>
+  <div class="feature"><div class="ico">💰</div><h4>کیف پول</h4><p>شارژ با تأیید رسید توسط مدیر. هر رسید فقط یک‌بار اعتبار می‌گیرد.</p></div>
+  <div class="feature"><div class="ico">🎁</div><h4>تست رایگان</h4><p>سهمیه‌ی قابل تنظیم، با امکان فعال و غیرفعال کردن از پنل مدیریت.</p></div>
+  <div class="feature"><div class="ico">👥</div><h4>زیرمجموعه‌گیری</h4><p>دعوت کاربران با پاداش برای معرف.</p></div>
+  <div class="feature"><div class="ico">🎧</div><h4>پشتیبانی و پرسش‌ها</h4><p>تیکت پشتیبانی و بخش پرسش‌های متداول، همه از داخل ربات.</p></div>
+  <div class="feature"><div class="ico">📱</div><h4>مینی‌اپ فارسی</h4><p>حالت روشن و تاریک، با احراز هویت امضای رسمی تلگرام.</p></div>
+  <div class="feature"><div class="ico">🧾</div><h4>پنل مدیریت</h4><p>محصولات، کارت‌های پرداخت، مدیران، عضویت اجباری و ارسال همگانی.</p></div>
+  <div class="feature"><div class="ico">📢</div><h4>گزارش در گروه</h4><p>گزارش‌های مدیریتی در گروه ادمین، با پشتیبانی از تاپیک‌ها.</p></div>
 </div>
 
 <h2 id="requirements">پیش‌نیازها</h2>
-<table>
+<table class="req reveal">
   <tr><th>مورد</th><th>الزام</th></tr>
-  <tr><td>نسخه‌ی PHP</td><td>۸.۰ یا جدیدتر (در cPanel از بخش <b>Select PHP Version</b>)</td></tr>
+  <tr><td>نسخه‌ی PHP</td><td>۸.۰ یا جدیدتر. در cPanel از بخش <b>Select PHP Version</b> انتخاب کنید.</td></tr>
   <tr><td>افزونه‌های PHP</td><td><span class="ltr">pdo_mysql</span>، <span class="ltr">curl</span>، <span class="ltr">json</span>، <span class="ltr">mbstring</span></td></tr>
-  <tr><td>SSL</td><td>گواهی SSL فعال برای دامنه؛ تلگرام فقط آدرس <b>HTTPS</b> را می‌پذیرد</td></tr>
-  <tr><td>دیتابیس</td><td>دسترسی به <b>MySQL® Databases</b> در cPanel</td></tr>
-  <tr><td>دسترسی</td><td>ورود به cPanel و File Manager</td></tr>
+  <tr><td>گواهی SSL</td><td>گواهی فعال برای دامنه. تلگرام فقط آدرس <b>HTTPS</b> را می‌پذیرد.</td></tr>
+  <tr><td>دیتابیس</td><td>دسترسی به <b>MySQL® Databases</b> در cPanel.</td></tr>
+  <tr><td>دسترسی</td><td>ورود به cPanel و File Manager.</td></tr>
 </table>
 
 <h2 id="quickstart">شروع سریع</h2>
-<p>اگر با cPanel آشنا هستید، این خلاصه برای شما کافی است:</p>
-<ol class="list">
-  <li>دیتابیس و کاربر MySQL بسازید و کاربر را با ALL PRIVILEGES به دیتابیس اضافه کنید.</li>
-  <li>توکن ربات را از BotFather و شناسه‌ی عددی خود را از userinfobot بگیرید.</li>
-  <li>کد را در <span class="ltr">public_html/SimorghBot</span> قرار دهید (Git یا ZIP).</li>
-  <li>صفحه‌ی <span class="ltr">install.php</span> را باز کرده و فرم را کامل کنید.</li>
-  <li>در تلگرام <span class="ltr">/start</span> بفرستید و از <span class="ltr">selftest.php</span> مطمئن شوید.</li>
+<p>اگر با cPanel آشنا هستید، این خلاصه برای شروع کافی است:</p>
+<ol class="list reveal">
+  <li>دیتابیس و کاربر MySQL بسازید و کاربر را با دسترسی <b>ALL PRIVILEGES</b> به دیتابیس اضافه کنید.</li>
+  <li>توکن ربات را از @BotFather و شناسه‌ی عددی خود را از @userinfobot بگیرید.</li>
+  <li>فایل‌های ربات را در <span class="ltr">public_html/SimorghBot</span> قرار دهید.</li>
+  <li>صفحه‌ی <span class="ltr">install.php</span> را باز کنید و فرم را کامل کنید.</li>
+  <li>در تلگرام <span class="ltr">/start</span> بفرستید و <span class="ltr">selftest.php</span> را بررسی کنید.</li>
 </ol>
 
-<h2 id="install-steps">نصب قدم‌به‌قدم روی هاست</h2>
-<p>برای اینکه هیچ مرحله‌ای جا نماند، هر مرحله را به ترتیب انجام دهید.</p>
+<h2 id="install">نصب قدم‌به‌قدم روی هاست</h2>
+<p class="muted">مراحل را به ترتیب انجام دهید. هر مرحله فقط به کارهای همان مرحله نیاز دارد.</p>
 
-<div class="step" id="step-db">
+<div class="step reveal" id="step-1">
   <div class="num">۱</div>
   <div class="body">
     <h3>ساخت دیتابیس MySQL</h3>
+    <p class="time">حدود ۳ دقیقه</p>
     <ol class="list">
       <li>وارد cPanel شوید و بخش <b>MySQL® Databases</b> را باز کنید.</li>
-      <li>در کادر <b>Create New Database</b> نام دلخواه بنویسید، مثلاً <span class="ltr">SimorghBot</span>، و بزنید.</li>
+      <li>در بخش <b>Create New Database</b> نامی مانند <span class="ltr">SimorghBot</span> وارد کنید و دکمه‌ی ساخت را بزنید.</li>
       <li>نام کامل دیتابیس را یادداشت کنید. cPanel پیشوند حساب را به آن اضافه می‌کند، مثلاً <span class="ltr">cpuser_SimorghBot</span>.</li>
-      <li>در بخش <b>MySQL Users</b> یک کاربر با رمز قوی بسازید و نام کامل کاربر (با پیشوند) را یادداشت کنید.</li>
-      <li>در بخش <b>Add User To Database</b> کاربر را به دیتابیس اضافه کنید و گزینه‌ی <b>ALL PRIVILEGES</b> را تیک بزنید.</li>
+      <li>در بخش <b>MySQL Users</b> یک کاربر با رمز قوی بسازید. نام کامل کاربر را هم یادداشت کنید.</li>
+      <li>در بخش <b>Add User To Database</b>، کاربر را به دیتابیس اضافه کنید و گزینه‌ی <b>ALL PRIVILEGES</b> را انتخاب کنید.</li>
     </ol>
-    <div class="callout warn"><strong>نکته:</strong> رمز دیتابیس را جایی امن نگه دارید. بعداً در صفحه‌ی نصب به آن نیاز دارید.</div>
+    <div class="callout warn"><span class="ci">⚠️</span><div class="ct"><strong>رمز دیتابیس را نگه دارید</strong>در مرحله‌ی ۴ به نام کامل دیتابیس، نام کاربر و رمز نیاز دارید.</div></div>
   </div>
 </div>
 
-<div class="step" id="step-bot">
+<div class="step reveal" id="step-2">
   <div class="num">۲</div>
   <div class="body">
     <h3>ساخت ربات و گرفتن توکن</h3>
+    <p class="time">حدود ۲ دقیقه</p>
     <ol class="list">
       <li>در تلگرام به <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> بروید و دستور <span class="ltr">/newbot</span> را بفرستید.</li>
-      <li>نام و یوزرنیم ربات را انتخاب کنید. یوزرنیم باید به <span class="ltr">bot</span> ختم شود.</li>
-      <li>توکنی را که BotFather می‌دهد کپی کنید. شکل آن شبیه <span class="ltr">123456:ABC...</span> است.</li>
-      <li>شناسه‌ی عددی خود را از <a href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a> بگیرید. این شناسه، ادمین اصلی ربات می‌شود.</li>
+      <li>نام و یوزرنیم ربات را انتخاب کنید. یوزرنیم باید با <span class="ltr">bot</span> تمام شود.</li>
+      <li>توکنی را که BotFather می‌دهد کپی کنید. شکل آن مانند <span class="ltr">123456:ABC...</span> است.</li>
+      <li>شناسه‌ی عددی خود را از <a href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a> بگیرید. این شناسه ادمین اصلی ربات می‌شود.</li>
     </ol>
-    <div class="callout danger"><strong>امنیت توکن:</strong> توکن را هرگز در گروه، کانال یا پیام عمومی نفرستید. اگر لو رفت، با <span class="ltr">/revoke</span> در BotFather آن را عوض کنید.</div>
+    <div class="callout danger"><span class="ci">🔐</span><div class="ct"><strong>توکن را محرمانه نگه دارید</strong>توکن را در گروه، کانال یا پیام عمومی نفرستید. اگر لو رفت، با دستور <span class="ltr">/revoke</span> در BotFather آن را عوض کنید.</div></div>
   </div>
 </div>
 
-<div class="step" id="step-files">
+<div class="step reveal" id="step-3">
   <div class="num">۳</div>
   <div class="body">
     <h3>دریافت فایل‌های ربات</h3>
-    <p>یکی از دو روش زیر را انتخاب کنید. روش Git ساده‌تر و برای به‌روزرسانی مناسب‌تر است.</p>
+    <p class="time">حدود ۳ دقیقه</p>
+    <p>یکی از دو روش زیر را انتخاب کنید. روش Git برای به‌روزرسانی ساده‌تر است.</p>
 
     <h3>روش الف: Git در cPanel</h3>
     <ol class="list">
-      <li>در cPanel بخش <b>Git™ Version Control</b> را باز کنید و روی <b>Create</b> بزنید.</li>
+      <li>در cPanel بخش <b>Git™ Version Control</b> را باز کنید و دکمه‌ی <b>Create</b> را بزنید.</li>
       <li>آدرس مخزن را وارد کنید:</li>
     </ol>
-    <div class="code"><button class="copy" onclick="copyCode(this)">کپی</button><code>https://github.com/Raven404xv/simorgh-bot.git</code></div>
+    <div class="code"><button class="copy" type="button">کپی</button><code>https://github.com/Raven404xv/simorgh-bot.git</code></div>
     <ol class="list" start="3">
-      <li>در بخش مسیر، <span class="ltr">public_html/SimorghBot</span> را بگذارید. پوشه‌ی مقصد باید خالی باشد.</li>
-      <li>روی <b>Create</b> بزنید تا فایل‌ها دریافت شوند.</li>
+      <li>در بخش مسیر، <span class="ltr">public_html/SimorghBot</span> را بنویسید. پوشه‌ی مقصد باید خالی باشد.</li>
+      <li>دکمه‌ی <b>Create</b> را بزنید تا فایل‌ها دریافت شوند.</li>
     </ol>
 
     <h3>روش ب: فایل ZIP از طریق File Manager</h3>
     <ol class="list">
-      <li>در صفحه‌ی مخزن GitHub روی <b>Code</b> و سپس <b>Download ZIP</b> بزنید.</li>
-      <li>در File Manager به پوشه‌ی <span class="ltr">public_html</span> بروید و فایل را آپلود کنید.</li>
+      <li>در صفحه‌ی مخزن GitHub، روی <b>Code</b> و سپس <b>Download ZIP</b> بزنید.</li>
+      <li>در File Manager وارد پوشه‌ی <span class="ltr">public_html</span> شوید و فایل را آپلود کنید.</li>
       <li>روی فایل راست‌کلیک کنید و <b>Extract</b> بزنید. نام پوشه‌ی استخراج‌شده را به <span class="ltr">SimorghBot</span> تغییر دهید.</li>
     </ol>
-    <div class="callout ok"><strong>دقت کنید:</strong> فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> در مخزن نیستند و خودشان ساخته می‌شوند. آن‌ها را دستی نسازید.</div>
+    <div class="callout ok"><span class="ci">✅</span><div class="ct"><strong>فایل‌های خصوصی را خودتان نسازید</strong>فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> در مخزن نیستند و نصب‌کننده خودش آن‌ها را می‌سازد.</div></div>
   </div>
 </div>
 
-<div class="step" id="step-install">
+<div class="step reveal" id="step-4">
   <div class="num">۴</div>
   <div class="body">
     <h3>اجرای نصب‌کننده</h3>
+    <p class="time">حدود ۵ دقیقه</p>
     <p>مرورگر را باز کنید و آدرس زیر را وارد کنید. دامنه‌ی خودتان را جایگزین کنید:</p>
-    <div class="code"><button class="copy" onclick="copyCode(this)">کپی</button><code>https://yourdomain.com/SimorghBot/install.php</code></div>
-    <p>فرم را این‌طور کامل کنید:</p>
-    <table>
-      <tr><th>فیلد</th><th>چه چیزی وارد شود</th></tr>
+    <div class="code"><button class="copy" type="button">کپی</button><code>https://yourdomain.com/SimorghBot/install.php</code></div>
+    <p>فرم را مطابق جدول زیر کامل کنید:</p>
+    <table class="fields">
+      <tr><th>فیلد</th><th>مقدار</th></tr>
       <tr><td>توکن ربات</td><td>توکنی که از BotFather گرفتید</td></tr>
-      <tr><td>شناسه‌ی ادمین</td><td>شناسه‌ی عددی خودتان از userinfobot</td></tr>
-      <tr><td>نام فروشگاه</td><td>نامی که در ربات دیده می‌شود</td></tr>
+      <tr><td>شناسه‌ی ادمین</td><td>شناسه‌ی عددی شما از @userinfobot</td></tr>
+      <tr><td>نام فروشگاه</td><td>نامی که کاربران در ربات می‌بینند</td></tr>
       <tr><td>میزبان دیتابیس</td><td>معمولاً <span class="ltr">localhost</span></td></tr>
-      <tr><td>نام دیتابیس</td><td>نام کامل همراه با پیشوند، مثل <span class="ltr">cpuser_SimorghBot</span></td></tr>
-      <tr><td>کاربر دیتابیس</td><td>نام کامل کاربر همراه با پیشوند</td></tr>
+      <tr><td>نام دیتابیس</td><td>نام کامل همراه با پیشوند، مانند <span class="ltr">cpuser_SimorghBot</span></td></tr>
+      <tr><td>نام کاربر دیتابیس</td><td>نام کامل کاربر همراه با پیشوند</td></tr>
       <tr><td>رمز دیتابیس</td><td>همان رمزی که برای کاربر ساختید</td></tr>
     </table>
-    <p>بعد از زدن دکمه‌ی نصب، این کارها خودکار انجام می‌شود:</p>
+    <p>بعد از زدن دکمه‌ی نصب، این کارها خودکار انجام می‌شوند:</p>
     <ul class="list">
       <li>توکن با تلگرام بررسی می‌شود.</li>
       <li>جدول‌های دیتابیس ساخته می‌شوند.</li>
       <li>فایل <span class="ltr">config.php</span> با دسترسی خصوصی ساخته می‌شود.</li>
-      <li>آدرس وب‌هوک در تلگرام ثبت می‌شود.</li>
+      <li>آدرس Webhook در تلگرام ثبت می‌شود.</li>
     </ul>
-    <div class="callout"><strong>نکته:</strong> اگر خطای اتصال به دیتابیس دیدید، نام کامل دیتابیس و کاربر را با پیشوند cPanel دوباره بررسی کنید.</div>
+    <div class="callout info"><span class="ci">💡</span><div class="ct"><strong>خطای اتصال به دیتابیس؟</strong>نام کامل دیتابیس و کاربر را با پیشوند cPanel دوباره بررسی کنید.</div></div>
   </div>
 </div>
 
-<div class="step" id="step-test">
+<div class="step reveal" id="step-5">
   <div class="num">۵</div>
   <div class="body">
     <h3>تست ربات</h3>
+    <p class="time">حدود ۵ دقیقه</p>
     <ol class="list">
       <li>در تلگرام به ربات بروید و <span class="ltr">/start</span> بفرستید.</li>
-      <li>با حساب ادمین، از دکمه‌ی <b>⚙️ پنل مدیریت</b> شماره کارت، نام صاحب کارت و محصولات را ثبت کنید.</li>
+      <li>با حساب ادمین، از دکمه‌ی <b>⚙️ پنل مدیریت</b> شماره‌ی کارت، نام صاحب کارت و محصولات را ثبت کنید.</li>
       <li>با یک حساب دیگر، یک شارژ کیف پول و یک خرید آزمایشی انجام دهید.</li>
-      <li>صفحه‌ی <span class="ltr">selftest.php</span> را باز کنید:</li>
+      <li>صفحه‌ی بررسی را باز کنید:</li>
     </ol>
-    <div class="code"><button class="copy" onclick="copyCode(this)">کپی</button><code>https://yourdomain.com/SimorghBot/selftest.php</code></div>
+    <div class="code"><button class="copy" type="button">کپی</button><code>https://yourdomain.com/SimorghBot/selftest.php</code></div>
     <p>همه‌ی ردیف‌ها باید ✅ باشند. اگر ردیفی خطا داشت، آن را در بخش <a href="#troubleshoot">عیب‌یابی</a> پیدا کنید.</p>
   </div>
 </div>
 
-<div class="step" id="step-secure">
+<div class="step reveal" id="step-6">
   <div class="num">۶</div>
   <div class="body">
     <h3>امنیت بعد از نصب</h3>
+    <p class="time">یک دقیقه</p>
     <ul class="list">
       <li>فایل <span class="ltr">install.php</span> بعد از نصب قفل می‌شود، با این حال آن را از File Manager حذف کنید.</li>
-      <li>وقتی همه‌چیز را تأیید کردید، <span class="ltr">selftest.php</span> را هم حذف کنید.</li>
+      <li>وقتی همه‌چیز را تأیید کردید، فایل <span class="ltr">selftest.php</span> را هم حذف کنید.</li>
       <li>فایل <span class="ltr">config.php</span> را هرگز برای کسی نفرستید؛ شامل توکن و رمز دیتابیس است.</li>
     </ul>
-    <div class="callout danger"><strong>مهم:</strong> بدون حذف <span class="ltr">install.php</span>، هر کسی که آدرس آن را داشته باشد می‌تواند تنظیمات را تغییر دهد.</div>
+    <div class="callout danger"><span class="ci">🛡️</span><div class="ct"><strong>مهم</strong>اگر <span class="ltr">install.php</span> باقی بماند، هر کسی که آدرس آن را داشته باشد می‌تواند تنظیمات را تغییر دهد.</div></div>
   </div>
 </div>
 
 <h2 id="update">به‌روزرسانی</h2>
-<h3>اگر با Git نصب کرده‌اید</h3>
-<ol class="list">
-  <li>در <b>Git™ Version Control</b> روی مخزن نصب‌شده بزنید.</li>
-  <li>گزینه‌ی <b>Update from Remote</b> را انتخاب کنید.</li>
-</ol>
-<h3>اگر با ZIP نصب کرده‌اید</h3>
-<ol class="list">
-  <li>پوشه‌ی <span class="ltr">src/</span> و فایل‌های <span class="ltr">*.php</span> جدید را جایگزین کنید.</li>
-  <li>فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> را <b>دست نزنید</b>؛ تنظیمات شما حفظ می‌شود.</li>
-  <li>اگر جدول جدیدی لازم باشد، با <span class="ltr">install_schema</span> ساخته می‌شود و داده‌های قبلی پاک نمی‌شوند.</li>
-</ol>
+<div class="grid reveal">
+  <div class="feature">
+    <div class="ico">🔄</div>
+    <h4>نصب با Git</h4>
+    <p>در Git™ Version Control، روی مخزن نصب‌شده <b>Update from Remote</b> را بزنید.</p>
+  </div>
+  <div class="feature">
+    <div class="ico">📦</div>
+    <h4>نصب با ZIP</h4>
+    <p>پوشه‌ی <span class="ltr">src/</span> و فایل‌های <span class="ltr">*.php</span> جدید را جایگزین کنید. فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> را تغییر ندهید.</p>
+  </div>
+</div>
+<p class="muted">جدول‌های جدید در صورت نیاز ساخته می‌شوند و اطلاعات قبلی پاک نمی‌شود.</p>
 
-<h2 id="config">تنظیمات مهم</h2>
-<table>
-  <tr><th>بخش</th><th>کجا تنظیم می‌شود</th></tr>
+<h2 id="settings">تنظیمات ربات</h2>
+<p>بیشتر تنظیمات از داخل ربات و پنل مدیریت انجام می‌شود. نیازی به ویرایش مستقیم فایل‌ها نیست.</p>
+<table class="req reveal">
+  <tr><th>بخش</th><th>محل تنظیم</th></tr>
   <tr><td>شماره‌ی کارت و صاحب کارت</td><td>پنل مدیریت در ربات</td></tr>
   <tr><td>محصولات و قیمت‌ها</td><td>پنل مدیریت در ربات</td></tr>
   <tr><td>تست رایگان (فعال یا غیرفعال)</td><td>پنل مدیریت در ربات</td></tr>
   <tr><td>چیدمان دکمه‌ها (شیشه‌ای یا کیبورد)</td><td>پنل مدیریت در ربات</td></tr>
   <tr><td>عضویت اجباری در کانال‌ها</td><td>پنل مدیریت در ربات</td></tr>
-  <tr><td>گزارش‌ها در گروه ادمین</td><td>یک سوپرگروه با Topics که ربات در آن ادمین با دسترسی مدیریت تاپیک باشد</td></tr>
+  <tr><td>گزارش‌ها در گروه ادمین</td><td>یک سوپرگروه با تاپیک‌ها که ربات در آن ادمین با دسترسی مدیریت تاپیک باشد</td></tr>
 </table>
 
 <h2 id="troubleshoot">عیب‌یابی</h2>
-<table>
+<table class="req reveal">
   <tr><th>مشکل</th><th>راه‌حل</th></tr>
   <tr><td>صفحه‌ی نصب خطای ۵۰۰ می‌دهد</td><td>نسخه‌ی PHP را ۸.۰ یا جدیدتر کنید و افزونه‌ی <span class="ltr">pdo_mysql</span> را فعال کنید.</td></tr>
-  <tr><td>اتصال به دیتابیس ناموفق است</td><td>نام کامل دیتابیس و کاربر (با پیشوند cPanel) و رمز را بررسی کنید.</td></tr>
-  <tr><td>ربات به <span class="ltr">/start</span> جواب نمی‌دهد</td><td><span class="ltr">selftest.php</span> را باز کنید و ردیف «خطای آخر Webhook» را بخوانید.</td></tr>
-  <tr><td>دکمه‌ی مینی‌اپ نمی‌آید</td><td>آدرس باید HTTPS باشد و SSL دامنه فعال باشد.</td></tr>
-  <tr><td>گزارش‌ها در گروه ثبت نمی‌شوند</td><td>گروه باید سوپرگروه با Topics باشد و ربات دسترسی مدیریت تاپیک داشته باشد.</td></tr>
-  <tr><td>مینی‌اپ «نشست منقضی» می‌دهد</td><td>مینی‌اپ را ببندید و دوباره از داخل ربات باز کنید.</td></tr>
-  <tr><td>آپلود رسید خطا می‌دهد</td><td>فقط عکس تا ۲ مگابایت مجاز است؛ مقدار <span class="ltr">upload_max_filesize</span> هاست را بررسی کنید.</td></tr>
+  <tr><td>اتصال به دیتابیس برقرار نمی‌شود</td><td>نام کامل دیتابیس و کاربر (با پیشوند cPanel) و رمز را بررسی کنید.</td></tr>
+  <tr><td>ربات به <span class="ltr">/start</span> پاسخ نمی‌دهد</td><td>صفحه‌ی <span class="ltr">selftest.php</span> را باز کنید و ردیف «خطای آخر Webhook» را بخوانید.</td></tr>
+  <tr><td>دکمه‌ی مینی‌اپ نمایش داده نمی‌شود</td><td>آدرس باید HTTPS باشد و گواهی SSL دامنه فعال باشد.</td></tr>
+  <tr><td>گزارش‌ها در گروه ثبت نمی‌شوند</td><td>گروه باید سوپرگروه با تاپیک باشد و ربات دسترسی مدیریت تاپیک داشته باشد.</td></tr>
+  <tr><td>مینی‌اپ پیغام «نشست منقضی» می‌دهد</td><td>مینی‌اپ را ببندید و دوباره از داخل ربات باز کنید.</td></tr>
+  <tr><td>آپلود رسید خطا می‌دهد</td><td>فقط عکس تا ۲ مگابایت مجاز است. مقدار <span class="ltr">upload_max_filesize</span> هاست را هم بررسی کنید.</td></tr>
 </table>
 
-<h2 id="faq">سؤالات متداول</h2>
-<div class="faq">
+<h2 id="faq">پرسش‌های متداول</h2>
+<div class="faq reveal">
   <details>
-    <summary>آیا برای نصب به SSH نیاز دارم؟</summary>
+    <summary>برای نصب به SSH نیاز دارم؟</summary>
     <p>خیر. تمام مراحل از طریق cPanel و مرورگر انجام می‌شود.</p>
   </details>
   <details>
-    <summary>آیا می‌توانم ربات را روی دامنه‌ای بدون SSL نصب کنم؟</summary>
-    <p>تلگرام فقط آدرس HTTPS را می‌پذیرد، پس SSL لازم است. در cPanel بخش <b>SSL/TLS Status</b> یا <b>Let's Encrypt</b> را فعال کنید.</p>
+    <summary>آیا می‌توانم بدون SSL ربات را نصب کنم؟</summary>
+    <p>تلگرام فقط آدرس HTTPS را می‌پذیرد، پس گواهی SSL لازم است. در cPanel بخش <b>SSL/TLS Status</b> یا <b>Let's Encrypt</b> را فعال کنید.</p>
   </details>
   <details>
-    <summary>ارسال همگانی کامل انجام می‌شود؟</summary>
-    <p>ارسال با تأخیر کوتاه بین پیام‌ها انجام می‌شود (حدود ۲۵ پیام در ثانیه). اگر تعداد کاربران خیلی زیاد باشد و هاست زمان اجرا را محدود کند، ارسال ممکن است کامل نشود. در این حالت باید صف ارسال با Cron راه‌اندازی شود.</p>
+    <summary>آیا ارسال همگانی برای همه‌ی کاربران کامل انجام می‌شود؟</summary>
+    <p>ارسال با تأخیر کوتاه بین پیام‌ها انجام می‌شود، حدود ۲۵ پیام در ثانیه. اگر تعداد کاربران بسیار زیاد باشد و هاست زمان اجرا را محدود کند، ارسال ممکن است کامل نشود. در این حالت باید صف ارسال با Cron راه‌اندازی شود.</p>
   </details>
   <details>
     <summary>اطلاعات ادمین را از کجا تغییر دهم؟</summary>
-    <p>از داخل ربات و پنل مدیریت. تغییر مستقیم <span class="ltr">config.php</span> توصیه نمی‌شود.</p>
+    <p>از داخل ربات و پنل مدیریت. ویرایش مستقیم فایل <span class="ltr">config.php</span> توصیه نمی‌شود.</p>
   </details>
 </div>
 
 <h2 id="support">پشتیبانی</h2>
-<p>اگر در نصب یا اجرای ربات به مشکلی برخوردید یا باگی دیدید، این‌طور کمک بگیرید:</p>
+<p>اگر در نصب یا اجرای ربات به مشکلی برخوردید، یا باگی دیدید، این موارد را همراه پیام خود بفرستید تا سریع‌تر کمک بگیرید:</p>
 <ul class="list">
-  <li>متن خطا یا عکس صفحه را بفرستید.</li>
-  <li>بگویید در کدام مرحله بودید و از چه روشی نصب کردید (Git یا ZIP).</li>
+  <li>متن خطا یا عکس صفحه</li>
+  <li>مرحله‌ای که در آن قرار داشتید</li>
+  <li>روش نصب (Git یا ZIP)</li>
 </ul>
-<div class="footer">
-  <p>📢 کانال: <a href="https://t.me/SimorghFree">@SimorghFree</a></p>
-  <p>💬 گروه پشتیبانی: <a href="https://t.me/SimorghBotGroup">@SimorghBotGroup</a></p>
-  <p>💎 سیمرغ همیشه ناظر است</p>
+
+<div class="footer reveal">
+  <div class="links">
+    <a href="https://t.me/SimorghFree" target="_blank" rel="noopener">📢 کانال سیمرغ</a>
+    <a href="https://t.me/SimorghBotGroup" target="_blank" rel="noopener">💬 گروه پشتیبانی</a>
+  </div>
+  <p>سیمرغ همیشه ناظر است 💎</p>
 </div>
 
 </main>
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite">کپی شد</div>
+
 <script>
-function toggleMenu() {
-  document.getElementById('side').classList.toggle('open');
-}
+(function () {
+  var root = document.documentElement;
+  var side = document.getElementById('side');
+  var overlay = document.getElementById('overlay');
+  var menuBtn = document.getElementById('menuBtn');
+  var themeBtn = document.getElementById('themeBtn');
+  var search = document.getElementById('search');
+  var toast = document.getElementById('toast');
 
-// Close the mobile menu after choosing a section
-document.querySelectorAll('aside.side a').forEach(function (a) {
-  a.addEventListener('click', function () {
-    document.getElementById('side').classList.remove('open');
+  // ----- Theme (remembered when storage is available) -----
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    try { localStorage.setItem('simorgh-theme', t); } catch (e) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('simorgh-theme'); } catch (e) {}
+  if (saved === 'light' || saved === 'dark') applyTheme(saved);
+  themeBtn.addEventListener('click', function () {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
   });
-});
 
-// Highlight the section that is in view
-var links = document.querySelectorAll('aside.side a[href^="#"]');
-var targets = [];
-links.forEach(function (a) {
-  var el = document.getElementById(a.getAttribute('href').slice(1));
-  if (el) targets.push({ id: a.getAttribute('href').slice(1), el: el });
-});
-function markActive() {
-  var current = null;
-  targets.forEach(function (t) {
-    if (t.el.getBoundingClientRect().top <= 120) current = t.id;
+  // ----- Mobile menu -----
+  function closeMenu() {
+    side.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+  menuBtn.addEventListener('click', function () {
+    side.classList.toggle('open');
+    overlay.classList.toggle('show', side.classList.contains('open'));
   });
-  links.forEach(function (a) {
-    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  overlay.addEventListener('click', closeMenu);
+  side.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', closeMenu);
   });
-}
-window.addEventListener('scroll', markActive, { passive: true });
-markActive();
 
-// Copy buttons
-function copyCode(btn) {
-  var code = btn.parentElement.querySelector('code').innerText;
-  var done = function () {
-    btn.innerText = 'کپی شد';
-    setTimeout(function () { btn.innerText = 'کپی'; }, 1500);
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(code).then(done);
+  // ----- Sidebar search -----
+  search.addEventListener('input', function () {
+    var q = search.value.trim().toLowerCase();
+    side.querySelectorAll('a').forEach(function (a) {
+      var match = a.textContent.toLowerCase().indexOf(q) !== -1;
+      a.classList.toggle('hidden', q !== '' && !match);
+    });
+  });
+
+  // ----- Active section highlight -----
+  var links = Array.prototype.slice.call(side.querySelectorAll('a[href^="#"]'));
+  var sections = links.map(function (a) {
+    return document.getElementById(a.getAttribute('href').slice(1));
+  });
+  function setActive(id) {
+    links.forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+    });
+  }
+  function onScroll() {
+    var current = null;
+    sections.forEach(function (el, i) {
+      if (el && el.getBoundingClientRect().top <= 140) {
+        current = links[i].getAttribute('href').slice(1);
+      }
+    });
+    if (current) setActive(current);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // ----- Reveal on scroll -----
+  var reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(function (el) { io.observe(el); });
   } else {
+    reveals.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  // ----- Copy buttons -----
+  var toastTimer = null;
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1600);
+  }
+  function fallbackCopy(text) {
     var area = document.createElement('textarea');
-    area.value = code;
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
     document.body.appendChild(area);
     area.select();
-    document.execCommand('copy');
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(area);
-    done();
+    return ok;
   }
-}
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var code = btn.parentElement.querySelector('code');
+      var text = code ? code.textContent.trim() : '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          showToast('کپی شد');
+        }, function () {
+          showToast(fallbackCopy(text) ? 'کپی شد' : 'کپی انجام نشد');
+        });
+      } else {
+        showToast(fallbackCopy(text) ? 'کپی شد' : 'کپی انجام نشد');
+      }
+    });
+  });
+})();
 </script>
 </body>
 </html>

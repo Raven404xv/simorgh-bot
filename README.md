@@ -1,5 +1,6 @@
-
 <div align="center">
+
+<img src="docs/logo-512.png" alt="SimorghBot logo" width="140">
 
 # 💎 SimorghBot
 

@@ -1,250 +1,150 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" data-lang="fa">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>راهنمای نصب سیمرغ بات روی هاست cPanel</title>
+<meta name="description" content="SimorghBot documentation — Persian and English installation guides for cPanel hosting and VPS servers.">
+<title>سیمرغ بات | Simorgh Bot — Documentation</title>
+<link rel="stylesheet" href="assets/site.css">
 <style>
-  :root {
-    --bg: #0f1419;
-    --card: #1a222b;
-    --text: #e6edf3;
-    --muted: #9aa7b4;
-    --accent: #3fb6a8;
-    --warn: #e3b341;
-    --danger: #f85149;
-    --ok: #3fb950;
-    --code: #0b1016;
-    --border: #2b3640;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: Tahoma, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.9;
-    font-size: 16px;
-  }
-  a { color: var(--accent); }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 60px; }
-
-  header {
-    text-align: center;
-    padding: 28px 16px;
+  /* Language switching: Persian is the default; English appears when data-lang="en". */
+  html[data-lang="fa"] .en { display: none; }
+  html[data-lang="en"] .fa { display: none; }
+  html[data-lang="en"] .site-nav,
+  html[data-lang="en"] .hub-card,
+  html[data-lang="en"] .hero { text-align: left; }
+  .lang-btn {
+    padding: 6px 14px;
+    border-radius: 10px;
     border: 1px solid var(--border);
-    border-radius: 16px;
-    background: #14231f;
-    margin-bottom: 24px;
-  }
-  header h1 { margin: 0 0 6px; font-size: 26px; color: var(--accent); }
-  header p { margin: 4px 0; color: var(--muted); }
-
-  h2 {
-    font-size: 20px;
-    margin: 32px 0 12px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-    color: var(--accent);
-  }
-  h3 { font-size: 17px; margin: 18px 0 6px; }
-  p { margin: 8px 0; }
-  ul, ol { padding-right: 22px; margin: 8px 0; }
-  li { margin: 6px 0; }
-  .ltr { direction: ltr; unicode-bidi: embed; font-family: Consolas, "Courier New", monospace; }
-
-  .notice { border-right: 4px solid var(--warn); background: #2a2415; padding: 12px 16px; border-radius: 10px; margin: 14px 0; }
-  .notice.danger { border-right-color: var(--danger); background: #2a1716; }
-  .notice.ok { border-right-color: var(--ok); background: #14261b; }
-
-  .code-block { margin: 10px 0; background: var(--code); border: 1px solid var(--border); border-radius: 10px; }
-  .code-block .bar { padding: 8px 8px 0; }
-  .code-block button {
-    padding: 4px 12px;
-    border-radius: 8px;
-    border: none;
-    background: var(--accent);
-    color: #04201c;
-    font-family: Tahoma, Arial, sans-serif;
-    font-size: 13px;
+    background: var(--card);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
     cursor: pointer;
   }
-  .code-block code {
-    display: block;
-    direction: ltr;
-    text-align: left;
-    padding: 8px 14px 14px;
-    color: #c9d1d9;
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 14px;
-    white-space: pre;
-    overflow-x: auto;
-  }
-
-  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: right; vertical-align: top; }
-  th { background: #222c36; font-weight: normal; color: var(--muted); }
-
-  .step { margin: 22px 0; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
-  .step h3 { margin-top: 0; color: var(--accent); }
-  .num {
-    display: inline-block;
-    min-width: 28px;
-    text-align: center;
-    margin-left: 8px;
-    padding: 2px 8px;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #04201c;
-    font-weight: bold;
-  }
-  .muted { color: var(--muted); }
-
-  details { margin: 8px 0; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
-  summary { cursor: pointer; font-weight: bold; }
-
-  footer { text-align: center; color: var(--muted); margin-top: 40px; font-size: 14px; border-top: 1px solid var(--border); padding-top: 16px; }
-  footer a { margin: 0 8px; }
+  .lang-btn:hover { border-color: var(--accent); }
+  .ltr-text { direction: ltr; unicode-bidi: embed; font-family: Consolas, "Courier New", monospace; }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<header>
-  <h1>💎 راهنمای نصب سیمرغ بات</h1>
-  <p>ربات فروشگاه پنل تلگرام با PHP و MySQL، روی هاست اشتراکی cPanel</p>
-  <p>نسخه‌ی ۳.۳.۰</p>
-  <p><a href="server/">نصب روی سرور (VPS) ←</a></p>
-</header>
+<nav class="site-nav">
+  <strong>💎 Simorgh Bot</strong>
+  <span>
+    <button class="lang-btn" id="langBtn" type="button" aria-label="Switch language">English</button>
+    <a href="https://t.me/SimorghFree">Channel</a>
+    <a href="https://t.me/SimorghBotGroup">Support</a>
+  </span>
+</nav>
 
-<div class="notice danger">
-  <strong>قبل از شروع:</strong> توکن ربات را فقط در صفحه‌ی نصب وارد کنید و هرگز آن را در گروه، کانال یا پیام عمومی نفرستید. اگر توکن لو رفت، با دستور <span class="ltr">/revoke</span> در <span class="ltr">@BotFather</span> آن را عوض کنید.
+<section class="hero">
+  <h1><span class="fa">راهنمای نصب سیمرغ بات</span><span class="en">Simorgh Bot Installation Guide</span></h1>
+  <p>
+    <span class="fa">ربات فروشگاه پنل تلگرام با PHP و MySQL</span>
+    <span class="en">A Telegram store bot for panel sales, built with PHP and MySQL</span>
+  </p>
+  <p class="muted">
+    <span class="fa">نسخه‌ی ۳.۳.۰</span>
+    <span class="en">Version 3.3.0</span>
+  </p>
+</section>
+
+<div class="stats">
+  <div class="stat">
+    <b>2</b>
+    <span class="fa">روش نصب</span>
+    <span class="en">installation methods</span>
+  </div>
+  <div class="stat">
+    <b>PHP 8+</b>
+    <span class="fa">نسخه‌ی موردنیاز</span>
+    <span class="en">required version</span>
+  </div>
+  <div class="stat">
+    <b>SSL</b>
+    <span class="fa">برای تلگرام الزامی است</span>
+    <span class="en">required by Telegram</span>
+  </div>
 </div>
 
-<h2>۱. پیش‌نیازها</h2>
-<ul>
-  <li>هاست cPanel با <strong>PHP 8.0</strong> یا جدیدتر (از بخش Select PHP Version انتخاب کنید).</li>
-  <li>افزونه‌های <span class="ltr">pdo_mysql</span>، <span class="ltr">curl</span>، <span class="ltr">json</span> و <span class="ltr">mbstring</span> فعال باشند.</li>
-  <li>گواهی SSL فعال برای دامنه. تلگرام فقط آدرس HTTPS را می‌پذیرد.</li>
-  <li>دسترسی به MySQL Databases در cPanel.</li>
-</ul>
+<h2>
+  <span class="fa">کدام راهنما را بخوانم؟</span>
+  <span class="en">Which guide should I read?</span>
+</h2>
 
-<h2>۲. نصب قدم‌به‌قدم</h2>
+<div class="hub-grid">
+  <a class="hub-card" href="host/">
+    <h2>🏠 <span class="fa">نصب روی هاست cPanel</span><span class="en">Install on cPanel hosting</span></h2>
+    <p>
+      <span class="fa">برای هاست اشتراکی با cPanel. دیتابیس را خودتان می‌سازید و نصب‌کننده‌ی تحت وب را اجرا می‌کنید.</span>
+      <span class="en">For shared hosting with cPanel. You create the database yourself and run the web installer.</span>
+    </p>
+    <p class="muted">
+      <span class="fa">Git یا ZIP ← install.php ← تست</span>
+      <span class="en">Git or ZIP → install.php → test</span>
+    </p>
+  </a>
 
-<div class="step">
-  <h3><span class="num">۱</span> ساخت دیتابیس</h3>
-  <ol>
-    <li>در cPanel بخش <strong>MySQL® Databases</strong> را باز کنید.</li>
-    <li>یک دیتابیس بسازید، مثلاً <span class="ltr">SimorghBot</span>. نام کامل آن با پیشوند حساب ساخته می‌شود، مثل <span class="ltr">cpuser_SimorghBot</span>. نام کامل را یادداشت کنید.</li>
-    <li>یک کاربر با رمز قوی بسازید و نام کامل آن را یادداشت کنید.</li>
-    <li>کاربر را به دیتابیس اضافه کنید و گزینه‌ی <strong>ALL PRIVILEGES</strong> را انتخاب کنید.</li>
-  </ol>
+  <a class="hub-card" href="server/">
+    <h2>🖥️ <span class="fa">نصب روی سرور (VPS)</span><span class="en">Install on a server (VPS)</span></h2>
+    <p>
+      <span class="fa">برای سرور مجازی با دسترسی root. یک دستور نصب می‌کند و منوی مدیریت <span class="ltr-text">simorgh</span> را می‌سازد.</span>
+      <span class="en">For a VPS with root access. One command installs everything and creates the <span class="ltr-text">simorgh</span> management menu.</span>
+    </p>
+    <p class="muted">
+      <span class="fa">یک دستور ← منو ← نصب خودکار</span>
+      <span class="en">One command → menu → automatic setup</span>
+    </p>
+  </a>
 </div>
 
-<div class="step">
-  <h3><span class="num">۲</span> ساخت ربات و توکن</h3>
-  <ol>
-    <li>در تلگرام به <span class="ltr">@BotFather</span> بروید و دستور <span class="ltr">/newbot</span> را بفرستید.</li>
-    <li>توکنی را که می‌گیرید کپی کنید. شکل آن مانند <span class="ltr">123456:ABC...</span> است.</li>
-    <li>شناسه‌ی عددی خودتان را از <span class="ltr">@userinfobot</span> بگیرید.</li>
-  </ol>
+<div class="note">
+  <strong>
+    <span class="fa">توکن را محرمانه نگه دارید.</span>
+    <span class="en">Keep your token private.</span>
+  </strong>
+  <span class="fa">توکن ربات را هرگز در گروه، کانال یا پیام عمومی نفرستید. اگر لو رفت، با دستور <span class="ltr-text">/revoke</span> در BotFather آن را عوض کنید.</span>
+  <span class="en">Never post your bot token in a group, channel or public message. If it leaks, revoke it with <span class="ltr-text">/revoke</span> in BotFather.</span>
 </div>
-
-<div class="step">
-  <h3><span class="num">۳</span> دریافت فایل‌های ربات</h3>
-  <p><strong>روش الف (Git):</strong> در cPanel بخش <strong>Git™ Version Control</strong> را باز کنید، روی Create بزنید و این آدرس را وارد کنید:</p>
-  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://github.com/Raven404xv/simorgh-bot.git</code></div>
-  <p>مسیر را <span class="ltr">public_html/SimorghBot</span> بگذارید. پوشه‌ی مقصد باید خالی باشد.</p>
-  <p><strong>روش ب (ZIP):</strong> در صفحه‌ی مخزن GitHub روی Code و سپس Download ZIP بزنید. فایل را در File Manager داخل <span class="ltr">public_html</span> آپلود و Extract کنید، و نام پوشه را به <span class="ltr">SimorghBot</span> تغییر دهید.</p>
-</div>
-
-<div class="step">
-  <h3><span class="num">۴</span> اجرای نصب‌کننده</h3>
-  <p>آدرس زیر را در مرورگر باز کنید و دامنه‌ی خودتان را جایگزین کنید:</p>
-  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://yourdomain.com/SimorghBot/install.php</code></div>
-  <table>
-    <tr><th>فیلد</th><th>مقدار</th></tr>
-    <tr><td>توکن ربات</td><td>توکنی که از BotFather گرفتید</td></tr>
-    <tr><td>شناسه‌ی ادمین</td><td>شناسه‌ی عددی شما</td></tr>
-    <tr><td>نام فروشگاه</td><td>نامی که کاربران می‌بینند</td></tr>
-    <tr><td>میزبان دیتابیس</td><td><span class="ltr">localhost</span></td></tr>
-    <tr><td>نام دیتابیس</td><td>نام کامل با پیشوند cPanel</td></tr>
-    <tr><td>نام کاربر و رمز</td><td>همان کاربر و رمزی که ساختید</td></tr>
-  </table>
-  <p class="muted">بعد از زدن دکمه‌ی نصب، جدول‌های دیتابیس، فایل تنظیمات و آدرس Webhook خودکار ساخته می‌شوند.</p>
-</div>
-
-<div class="step">
-  <h3><span class="num">۵</span> تست ربات</h3>
-  <ol>
-    <li>در تلگرام به ربات بروید و <span class="ltr">/start</span> بفرستید.</li>
-    <li>با حساب ادمین، شماره‌ی کارت و محصولات را از پنل مدیریت ثبت کنید.</li>
-    <li>صفحه‌ی بررسی را باز کنید:</li>
-  </ol>
-  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://yourdomain.com/SimorghBot/selftest.php</code></div>
-  <p>همه‌ی ردیف‌ها باید ✅ باشند.</p>
-</div>
-
-<div class="step">
-  <h3><span class="num">۶</span> امنیت بعد از نصب</h3>
-  <p>فایل‌های <span class="ltr">install.php</span> و <span class="ltr">selftest.php</span> را از File Manager حذف کنید. فایل <span class="ltr">config.php</span> شامل توکن و رمز دیتابیس است؛ آن را هرگز برای کسی نفرستید.</p>
-</div>
-
-<h2>۳. به‌روزرسانی</h2>
-<ul>
-  <li><strong>با Git:</strong> در Git™ Version Control روی مخزن نصب‌شده <strong>Update from Remote</strong> را بزنید.</li>
-  <li><strong>با ZIP:</strong> پوشه‌ی <span class="ltr">src/</span> و فایل‌های <span class="ltr">*.php</span> جدید را جایگزین کنید. فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> را تغییر ندهید.</li>
-</ul>
-
-<h2>۴. عیب‌یابی</h2>
-<table>
-  <tr><th>مشکل</th><th>راه‌حل</th></tr>
-  <tr><td>صفحه‌ی نصب خطای ۵۰۰ می‌دهد</td><td>نسخه‌ی PHP را ۸.۰ یا جدیدتر کنید و <span class="ltr">pdo_mysql</span> را فعال کنید.</td></tr>
-  <tr><td>اتصال به دیتابیس برقرار نمی‌شود</td><td>نام کامل دیتابیس، کاربر و رمز را بررسی کنید.</td></tr>
-  <tr><td>ربات به <span class="ltr">/start</span> جواب نمی‌دهد</td><td>صفحه‌ی <span class="ltr">selftest.php</span> را باز کنید و ردیف «خطای آخر Webhook» را بخوانید.</td></tr>
-  <tr><td>دکمه‌ی مینی‌اپ نمی‌آید</td><td>آدرس باید HTTPS باشد.</td></tr>
-</table>
-
-<h2>۵. پرسش‌های متداول</h2>
-<details>
-  <summary>برای نصب به SSH نیاز دارم؟</summary>
-  <p>خیر. همه‌ی مراحل از cPanel و مرورگر انجام می‌شود.</p>
-</details>
-<details>
-  <summary>آیا بدون SSL کار می‌کند؟</summary>
-  <p>خیر. تلگرام فقط آدرس HTTPS را می‌پذیرد. SSL را در cPanel با Let's Encrypt فعال کنید.</p>
-</details>
 
 <footer>
-  <p><a href="https://t.me/SimorghFree">کانال سیمرغ</a> | <a href="https://t.me/SimorghBotGroup">گروه پشتیبانی</a></p>
-  <p>سیمرغ همیشه ناظر است</p>
+  <p>
+    <a href="https://t.me/SimorghFree">Channel: @SimorghFree</a> |
+    <a href="https://t.me/SimorghBotGroup">Support: @SimorghBotGroup</a>
+  </p>
+  <p>
+    <span class="fa">سیمرغ همیشه ناظر است</span>
+    <span class="en">Simorgh is always watching</span>
+  </p>
 </footer>
 
 </div>
 
 <script>
-function copyText(btn) {
-  var box = btn.parentNode.parentNode;
-  var code = box.getElementsByTagName('code')[0];
-  var text = code ? code.textContent : '';
-  var done = function () {
-    btn.textContent = 'کپی شد';
-    setTimeout(function () { btn.textContent = 'کپی'; }, 1500);
-  };
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, done);
-      return;
-    }
-  } catch (e) {}
-  var area = document.createElement('textarea');
-  area.value = text;
-  document.body.appendChild(area);
-  area.select();
-  try { document.execCommand('copy'); } catch (e) {}
-  document.body.removeChild(area);
-  done();
-}
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('langBtn');
+  if (!btn) return;
+
+  function setLang(lang) {
+    if (lang !== 'fa' && lang !== 'en') lang = 'fa';
+    root.setAttribute('data-lang', lang);
+    root.setAttribute('lang', lang);
+    root.setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
+    btn.textContent = lang === 'fa' ? 'English' : 'فارسی';
+    try { localStorage.setItem('simorgh-lang', lang); } catch (e) {}
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem('simorgh-lang'); } catch (e) {}
+  setLang(saved || 'fa');
+
+  btn.addEventListener('click', function () {
+    setLang(root.getAttribute('data-lang') === 'fa' ? 'en' : 'fa');
+  });
+})();
 </script>
 </body>
 </html>

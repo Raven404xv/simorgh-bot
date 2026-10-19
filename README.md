@@ -1,5 +1,6 @@
 <div align="center">
 
+- 🖥️ [Server installation guide](SERVER.md)
 
 # 💎 SimorghBot
 

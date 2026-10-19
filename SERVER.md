@@ -6,7 +6,7 @@
 
 [![Telegram Channel](https://img.shields.io/badge/TELEGRAM-CHANNEL-29A7E1?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/SimorghFree)
 [![Telegram Group](https://img.shields.io/badge/TELEGRAM-GROUP-29A7E1?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/SimorghBotGroup)
-[![Host Guide](https://img.shields.io/badge/GUIDE-CPANEL%20HOSTING-3FB6A8?style=for-the-badge)](https://raven404xv.github.io/simorgh-bot/host/)
+[![Host Guide](https://img.shields.io/badge/GUIDE-CPANEL%20HOSTING-3FB6A8?style=for-the-badge)](https://raven404xv.github.io/simorgh-bot/server/)
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04%2B-E95420?style=flat-square&logo=ubuntu&logoColor=white)
 ![Debian](https://img.shields.io/badge/Debian-12%2B-A81D33?style=flat-square&logo=debian&logoColor=white)

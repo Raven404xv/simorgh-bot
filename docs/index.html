@@ -3,360 +3,221 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="راهنمای کامل نصب و راه‌اندازی ربات فروشگاه سیمرغ روی هاست cPanel">
-<title>سیمرغ بات | راهنمای نصب</title>
-<link rel="icon" type="image/png" href="favicon.png">
+<title>راهنمای نصب سیمرغ بات روی هاست cPanel</title>
 <style>
+  :root {
+    --bg: #0f1419;
+    --card: #1a222b;
+    --text: #e6edf3;
+    --muted: #9aa7b4;
+    --accent: #3fb6a8;
+    --warn: #e3b341;
+    --danger: #f85149;
+    --ok: #3fb950;
+    --code: #0b1016;
+    --border: #2b3640;
+  }
+  * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: Tahoma, Arial, sans-serif;
-    font-size: 16px;
+    background: var(--bg);
+    color: var(--text);
     line-height: 1.9;
-    color: #e7edf3;
-    background: #0b0f14;
+    font-size: 16px;
   }
-  a { color: #7dd3fc; }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 60px; }
+  a { color: var(--accent); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 60px; }
 
-  .top {
-    padding: 14px 0;
-    border-bottom: 1px solid #1f2a36;
-    overflow: hidden;
+  header {
+    text-align: center;
+    padding: 28px 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: #14231f;
+    margin-bottom: 24px;
   }
-  .brand { float: right; }
-  .brand img { float: right; width: 44px; height: 44px; border-radius: 10px; margin-left: 10px; }
-  .brand b { display: block; font-size: 18px; }
-  .brand span { display: block; font-size: 13px; color: #8795a4; }
-  .top .links { float: left; padding-top: 10px; font-size: 14px; }
-  .top .links a { margin-right: 12px; }
-
-  .hero { text-align: center; padding: 32px 8px 20px; }
-  .hero img { width: 128px; height: 128px; border-radius: 22px; }
-  .hero h1 { font-size: 28px; margin: 12px 0 6px; color: #2dd4bf; }
-  .hero p { margin: 6px 0; color: #8795a4; }
-  .btns { margin-top: 16px; }
-  .btn {
-    display: inline-block;
-    margin: 4px;
-    padding: 9px 18px;
-    border-radius: 10px;
-    background: #2dd4bf;
-    color: #04211c;
-    font-weight: bold;
-    text-decoration: none;
-  }
-  .btn.plain { background: #141c26; color: #e7edf3; border: 1px solid #1f2a36; }
-
-  .stats { text-align: center; margin: 10px 0 0; }
-  .stat {
-    display: inline-block;
-    width: 150px;
-    margin: 6px;
-    padding: 14px 8px;
-    background: #141c26;
-    border: 1px solid #1f2a36;
-    border-radius: 12px;
-    vertical-align: top;
-  }
-  .stat b { display: block; font-size: 20px; color: #2dd4bf; }
-  .stat span { font-size: 13px; color: #8795a4; }
+  header h1 { margin: 0 0 6px; font-size: 26px; color: var(--accent); }
+  header p { margin: 4px 0; color: var(--muted); }
 
   h2 {
-    margin: 40px 0 12px;
+    font-size: 20px;
+    margin: 32px 0 12px;
     padding-bottom: 6px;
-    border-bottom: 1px solid #1f2a36;
-    font-size: 22px;
-    color: #2dd4bf;
+    border-bottom: 1px solid var(--border);
+    color: var(--accent);
   }
-  h3 { margin: 18px 0 6px; font-size: 17px; }
+  h3 { font-size: 17px; margin: 18px 0 6px; }
   p { margin: 8px 0; }
   ul, ol { padding-right: 22px; margin: 8px 0; }
   li { margin: 6px 0; }
-  .muted { color: #8795a4; }
   .ltr { direction: ltr; unicode-bidi: embed; font-family: Consolas, "Courier New", monospace; }
 
-  .note { border-right: 4px solid #58a6ff; background: #0f1f33; padding: 10px 14px; border-radius: 10px; margin: 12px 0; }
-  .warn { border-right: 4px solid #e3b341; background: #2a2415; padding: 10px 14px; border-radius: 10px; margin: 12px 0; }
-  .danger { border-right: 4px solid #f85149; background: #2a1716; padding: 10px 14px; border-radius: 10px; margin: 12px 0; }
-  .ok { border-right: 4px solid #3fb950; background: #14261b; padding: 10px 14px; border-radius: 10px; margin: 12px 0; }
+  .notice { border-right: 4px solid var(--warn); background: #2a2415; padding: 12px 16px; border-radius: 10px; margin: 14px 0; }
+  .notice.danger { border-right-color: var(--danger); background: #2a1716; }
+  .notice.ok { border-right-color: var(--ok); background: #14261b; }
 
-  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 15px; }
-  th, td { border: 1px solid #1f2a36; padding: 9px 10px; text-align: right; vertical-align: top; }
-  th { background: #1c232c; color: #8795a4; font-weight: normal; }
-
-  .codebox { margin: 10px 0; background: #070a0e; border: 1px solid #1d2733; border-radius: 10px; }
-  .codebox .bar { padding: 6px 8px 0; text-align: left; }
-  .codebox button {
+  .code-block { margin: 10px 0; background: var(--code); border: 1px solid var(--border); border-radius: 10px; }
+  .code-block .bar { padding: 8px 8px 0; }
+  .code-block button {
     padding: 4px 12px;
     border-radius: 8px;
-    border: 1px solid #2a3847;
-    background: #111923;
-    color: #cbd5e1;
+    border: none;
+    background: var(--accent);
+    color: #04201c;
     font-family: Tahoma, Arial, sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     cursor: pointer;
   }
-  .codebox code {
+  .code-block code {
     display: block;
     direction: ltr;
     text-align: left;
-    padding: 6px 14px 14px;
-    color: #d6e2ee;
+    padding: 8px 14px 14px;
+    color: #c9d1d9;
     font-family: Consolas, "Courier New", monospace;
     font-size: 14px;
     white-space: pre;
     overflow-x: auto;
   }
 
-  .step { margin: 24px 0; padding: 16px 18px; background: #141c26; border: 1px solid #1f2a36; border-radius: 14px; }
-  .step h3 { margin-top: 0; color: #2dd4bf; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: right; vertical-align: top; }
+  th { background: #222c36; font-weight: normal; color: var(--muted); }
+
+  .step { margin: 22px 0; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+  .step h3 { margin-top: 0; color: var(--accent); }
   .num {
     display: inline-block;
-    min-width: 30px;
+    min-width: 28px;
     text-align: center;
     margin-left: 8px;
     padding: 2px 8px;
     border-radius: 8px;
-    background: #2dd4bf;
-    color: #04211c;
+    background: var(--accent);
+    color: #04201c;
     font-weight: bold;
   }
+  .muted { color: var(--muted); }
 
-  details { margin: 8px 0; padding: 10px 14px; background: #141c26; border: 1px solid #1f2a36; border-radius: 12px; }
+  details { margin: 8px 0; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
   summary { cursor: pointer; font-weight: bold; }
 
-  .footer { margin-top: 48px; padding: 20px 0; text-align: center; color: #8795a4; font-size: 14px; border-top: 1px solid #1f2a36; }
-  .footer a { margin: 0 8px; }
-
-  @media (max-width: 600px) {
-    .hero h1 { font-size: 24px; }
-    .top .links { display: none; }
-    .stat { width: 42%; }
-  }
+  footer { text-align: center; color: var(--muted); margin-top: 40px; font-size: 14px; border-top: 1px solid var(--border); padding-top: 16px; }
+  footer a { margin: 0 8px; }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<div class="top">
-  <div class="brand">
-    <img src="logo-128.png" alt="لوگوی سیمرغ">
-    <div><b>سیمرغ بات</b><span>راهنمای نصب</span></div>
-  </div>
-  <div class="links">
-    <a href="https://t.me/SimorghFree">کانال</a>
-    <a href="https://t.me/SimorghBotGroup">گروه پشتیبانی</a>
-  </div>
-</div>
-
-<div class="hero" id="intro">
-  <img src="logo-128.png" alt="لوگوی سیمرغ">
-  <h1>راهنمای نصب سیمرغ بات</h1>
+<header>
+  <h1>💎 راهنمای نصب سیمرغ بات</h1>
   <p>ربات فروشگاه پنل تلگرام با PHP و MySQL، روی هاست اشتراکی cPanel</p>
-  <p>ربات با Webhook کار می‌کند و به فرآیند دائمی یا دسترسی SSH نیاز ندارد.</p>
-  <p class="muted">نسخه‌ی ۳.۳.۰</p>
-  <div class="btns">
-    <a class="btn" href="#step-1">شروع نصب</a>
-    <a class="btn plain" href="#troubleshoot">عیب‌یابی</a>
-    <a class="btn plain" href="https://github.com/Raven404xv/simorgh-bot">مخزن GitHub</a>
-  </div>
+  <p>نسخه‌ی ۳.۳.۰</p>
+</header>
+
+<div class="notice danger">
+  <strong>قبل از شروع:</strong> توکن ربات را فقط در صفحه‌ی نصب وارد کنید و هرگز آن را در گروه، کانال یا پیام عمومی نفرستید. اگر توکن لو رفت، با دستور <span class="ltr">/revoke</span> در <span class="ltr">@BotFather</span> آن را عوض کنید.
 </div>
 
-<div class="stats">
-  <div class="stat"><b>۶</b><span>مرحله‌ی نصب</span></div>
-  <div class="stat"><b>۱۵ تا ۲۰</b><span>دقیقه تا راه‌اندازی</span></div>
-  <div class="stat"><b>PHP 8+</b><span>نسخه‌ی موردنیاز</span></div>
-  <div class="stat"><b>cPanel</b><span>هاست اشتراکی</span></div>
-</div>
-
-<h2 id="features">امکانات</h2>
+<h2>۱. پیش‌نیازها</h2>
 <ul>
-  <li><b>فروش پنل:</b> خرید در بازه‌های ۱، ۲ و ۳ ماهه، با پرداخت از کیف پول یا کارت به کارت.</li>
-  <li><b>کیف پول:</b> شارژ با تأیید رسید توسط مدیر. هر رسید فقط یک‌بار اعتبار می‌گیرد.</li>
-  <li><b>تست رایگان:</b> سهمیه‌ی قابل تنظیم، با امکان فعال و غیرفعال کردن از پنل مدیریت.</li>
-  <li><b>زیرمجموعه‌گیری:</b> دعوت کاربران با پاداش برای معرف.</li>
-  <li><b>پشتیبانی و پرسش‌ها:</b> تیکت پشتیبانی و بخش پرسش‌های متداول، همه از داخل ربات.</li>
-  <li><b>مینی‌اپ فارسی:</b> حالت روشن و تاریک، با احراز هویت امضای رسمی تلگرام.</li>
-  <li><b>پنل مدیریت:</b> محصولات، کارت‌های پرداخت، مدیران، عضویت اجباری و ارسال همگانی.</li>
-  <li><b>گزارش در گروه:</b> گزارش‌های مدیریتی در گروه ادمین، با پشتیبانی از تاپیک‌ها.</li>
+  <li>هاست cPanel با <strong>PHP 8.0</strong> یا جدیدتر (از بخش Select PHP Version انتخاب کنید).</li>
+  <li>افزونه‌های <span class="ltr">pdo_mysql</span>، <span class="ltr">curl</span>، <span class="ltr">json</span> و <span class="ltr">mbstring</span> فعال باشند.</li>
+  <li>گواهی SSL فعال برای دامنه. تلگرام فقط آدرس HTTPS را می‌پذیرد.</li>
+  <li>دسترسی به MySQL Databases در cPanel.</li>
 </ul>
 
-<h2 id="requirements">پیش‌نیازها</h2>
-<table>
-  <tr><th>مورد</th><th>الزام</th></tr>
-  <tr><td>نسخه‌ی PHP</td><td>۸.۰ یا جدیدتر. در cPanel از بخش Select PHP Version انتخاب کنید.</td></tr>
-  <tr><td>افزونه‌های PHP</td><td><span class="ltr">pdo_mysql</span>، <span class="ltr">curl</span>، <span class="ltr">json</span>، <span class="ltr">mbstring</span></td></tr>
-  <tr><td>گواهی SSL</td><td>گواهی فعال برای دامنه. تلگرام فقط آدرس HTTPS را می‌پذیرد.</td></tr>
-  <tr><td>دیتابیس</td><td>دسترسی به MySQL Databases در cPanel.</td></tr>
-  <tr><td>دسترسی</td><td>ورود به cPanel و File Manager.</td></tr>
-</table>
+<h2>۲. نصب قدم‌به‌قدم</h2>
 
-<h2 id="quickstart">شروع سریع</h2>
-<ol>
-  <li>دیتابیس و کاربر MySQL بسازید و کاربر را با دسترسی ALL PRIVILEGES به دیتابیس اضافه کنید.</li>
-  <li>توکن ربات را از @BotFather و شناسه‌ی عددی خود را از @userinfobot بگیرید.</li>
-  <li>فایل‌های ربات را در <span class="ltr">public_html/SimorghBot</span> قرار دهید.</li>
-  <li>صفحه‌ی <span class="ltr">install.php</span> را باز کنید و فرم را کامل کنید.</li>
-  <li>در تلگرام <span class="ltr">/start</span> بفرستید و <span class="ltr">selftest.php</span> را بررسی کنید.</li>
-</ol>
-
-<h2 id="install">نصب قدم‌به‌قدم روی هاست</h2>
-<p class="muted">مراحل را به ترتیب انجام دهید.</p>
-
-<div class="step" id="step-1">
-  <h3><span class="num">۱</span> ساخت دیتابیس MySQL</h3>
-  <p class="muted">حدود ۳ دقیقه</p>
+<div class="step">
+  <h3><span class="num">۱</span> ساخت دیتابیس</h3>
   <ol>
-    <li>وارد cPanel شوید و بخش MySQL® Databases را باز کنید.</li>
-    <li>در بخش Create New Database نامی مانند <span class="ltr">SimorghBot</span> بسازید.</li>
-    <li>نام کامل دیتابیس را یادداشت کنید. cPanel پیشوند حساب را اضافه می‌کند، مثلاً <span class="ltr">cpuser_SimorghBot</span>.</li>
-    <li>در بخش MySQL Users یک کاربر با رمز قوی بسازید و نام کامل کاربر را یادداشت کنید.</li>
-    <li>در بخش Add User To Database، کاربر را به دیتابیس اضافه کنید و گزینه‌ی ALL PRIVILEGES را انتخاب کنید.</li>
+    <li>در cPanel بخش <strong>MySQL® Databases</strong> را باز کنید.</li>
+    <li>یک دیتابیس بسازید، مثلاً <span class="ltr">SimorghBot</span>. نام کامل آن با پیشوند حساب ساخته می‌شود، مثل <span class="ltr">cpuser_SimorghBot</span>. نام کامل را یادداشت کنید.</li>
+    <li>یک کاربر با رمز قوی بسازید و نام کامل آن را یادداشت کنید.</li>
+    <li>کاربر را به دیتابیس اضافه کنید و گزینه‌ی <strong>ALL PRIVILEGES</strong> را انتخاب کنید.</li>
   </ol>
-  <div class="warn">نام کامل دیتابیس، نام کاربر و رمز را برای مرحله‌ی ۴ نگه دارید.</div>
 </div>
 
-<div class="step" id="step-2">
-  <h3><span class="num">۲</span> ساخت ربات و گرفتن توکن</h3>
-  <p class="muted">حدود ۲ دقیقه</p>
+<div class="step">
+  <h3><span class="num">۲</span> ساخت ربات و توکن</h3>
   <ol>
-    <li>در تلگرام به <a href="https://t.me/BotFather">@BotFather</a> بروید و دستور <span class="ltr">/newbot</span> را بفرستید.</li>
-    <li>نام و یوزرنیم ربات را انتخاب کنید. یوزرنیم باید با <span class="ltr">bot</span> تمام شود.</li>
-    <li>توکنی را که BotFather می‌دهد کپی کنید. شکل آن مانند <span class="ltr">123456:ABC...</span> است.</li>
-    <li>شناسه‌ی عددی خود را از <a href="https://t.me/userinfobot">@userinfobot</a> بگیرید. این شناسه ادمین اصلی ربات می‌شود.</li>
+    <li>در تلگرام به <span class="ltr">@BotFather</span> بروید و دستور <span class="ltr">/newbot</span> را بفرستید.</li>
+    <li>توکنی را که می‌گیرید کپی کنید. شکل آن مانند <span class="ltr">123456:ABC...</span> است.</li>
+    <li>شناسه‌ی عددی خودتان را از <span class="ltr">@userinfobot</span> بگیرید.</li>
   </ol>
-  <div class="danger">توکن را در گروه، کانال یا پیام عمومی نفرستید. اگر لو رفت، با دستور <span class="ltr">/revoke</span> در BotFather آن را عوض کنید.</div>
 </div>
 
-<div class="step" id="step-3">
+<div class="step">
   <h3><span class="num">۳</span> دریافت فایل‌های ربات</h3>
-  <p class="muted">حدود ۳ دقیقه</p>
-  <p>یکی از دو روش زیر را انتخاب کنید. روش Git برای به‌روزرسانی ساده‌تر است.</p>
-
-  <h3>روش الف: Git در cPanel</h3>
-  <ol>
-    <li>در cPanel بخش Git™ Version Control را باز کنید و دکمه‌ی Create را بزنید.</li>
-    <li>آدرس مخزن را وارد کنید:</li>
-  </ol>
-  <div class="codebox"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://github.com/Raven404xv/simorgh-bot.git</code></div>
-  <ol start="3">
-    <li>در بخش مسیر، <span class="ltr">public_html/SimorghBot</span> را بنویسید. پوشه‌ی مقصد باید خالی باشد.</li>
-    <li>دکمه‌ی Create را بزنید تا فایل‌ها دریافت شوند.</li>
-  </ol>
-
-  <h3>روش ب: فایل ZIP از طریق File Manager</h3>
-  <ol>
-    <li>در صفحه‌ی مخزن GitHub، روی Code و سپس Download ZIP بزنید.</li>
-    <li>در File Manager وارد پوشه‌ی <span class="ltr">public_html</span> شوید و فایل را آپلود کنید.</li>
-    <li>روی فایل راست‌کلیک کنید و Extract بزنید. نام پوشه‌ی استخراج‌شده را به <span class="ltr">SimorghBot</span> تغییر دهید.</li>
-  </ol>
-  <div class="ok">فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> در مخزن نیستند و نصب‌کننده خودش آن‌ها را می‌سازد.</div>
+  <p><strong>روش الف (Git):</strong> در cPanel بخش <strong>Git™ Version Control</strong> را باز کنید، روی Create بزنید و این آدرس را وارد کنید:</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://github.com/Raven404xv/simorgh-bot.git</code></div>
+  <p>مسیر را <span class="ltr">public_html/SimorghBot</span> بگذارید. پوشه‌ی مقصد باید خالی باشد.</p>
+  <p><strong>روش ب (ZIP):</strong> در صفحه‌ی مخزن GitHub روی Code و سپس Download ZIP بزنید. فایل را در File Manager داخل <span class="ltr">public_html</span> آپلود و Extract کنید، و نام پوشه را به <span class="ltr">SimorghBot</span> تغییر دهید.</p>
 </div>
 
-<div class="step" id="step-4">
+<div class="step">
   <h3><span class="num">۴</span> اجرای نصب‌کننده</h3>
-  <p class="muted">حدود ۵ دقیقه</p>
   <p>آدرس زیر را در مرورگر باز کنید و دامنه‌ی خودتان را جایگزین کنید:</p>
-  <div class="codebox"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://yourdomain.com/SimorghBot/install.php</code></div>
-  <p>فرم را مطابق جدول زیر کامل کنید:</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://yourdomain.com/SimorghBot/install.php</code></div>
   <table>
     <tr><th>فیلد</th><th>مقدار</th></tr>
     <tr><td>توکن ربات</td><td>توکنی که از BotFather گرفتید</td></tr>
-    <tr><td>شناسه‌ی ادمین</td><td>شناسه‌ی عددی شما از @userinfobot</td></tr>
-    <tr><td>نام فروشگاه</td><td>نامی که کاربران در ربات می‌بینند</td></tr>
-    <tr><td>میزبان دیتابیس</td><td>معمولاً <span class="ltr">localhost</span></td></tr>
-    <tr><td>نام دیتابیس</td><td>نام کامل همراه با پیشوند، مانند <span class="ltr">cpuser_SimorghBot</span></td></tr>
-    <tr><td>نام کاربر دیتابیس</td><td>نام کامل کاربر همراه با پیشوند</td></tr>
-    <tr><td>رمز دیتابیس</td><td>همان رمزی که برای کاربر ساختید</td></tr>
+    <tr><td>شناسه‌ی ادمین</td><td>شناسه‌ی عددی شما</td></tr>
+    <tr><td>نام فروشگاه</td><td>نامی که کاربران می‌بینند</td></tr>
+    <tr><td>میزبان دیتابیس</td><td><span class="ltr">localhost</span></td></tr>
+    <tr><td>نام دیتابیس</td><td>نام کامل با پیشوند cPanel</td></tr>
+    <tr><td>نام کاربر و رمز</td><td>همان کاربر و رمزی که ساختید</td></tr>
   </table>
-  <p>بعد از زدن دکمه‌ی نصب، این کارها خودکار انجام می‌شوند: بررسی توکن، ساخت جدول‌های دیتابیس، ساخت فایل <span class="ltr">config.php</span> با دسترسی خصوصی، و ثبت آدرس Webhook در تلگرام.</p>
-  <div class="note">اگر خطای اتصال به دیتابیس دیدید، نام کامل دیتابیس و کاربر را با پیشوند cPanel دوباره بررسی کنید.</div>
+  <p class="muted">بعد از زدن دکمه‌ی نصب، جدول‌های دیتابیس، فایل تنظیمات و آدرس Webhook خودکار ساخته می‌شوند.</p>
 </div>
 
-<div class="step" id="step-5">
+<div class="step">
   <h3><span class="num">۵</span> تست ربات</h3>
-  <p class="muted">حدود ۵ دقیقه</p>
   <ol>
     <li>در تلگرام به ربات بروید و <span class="ltr">/start</span> بفرستید.</li>
-    <li>با حساب ادمین، از دکمه‌ی ⚙️ پنل مدیریت شماره‌ی کارت، نام صاحب کارت و محصولات را ثبت کنید.</li>
-    <li>با یک حساب دیگر، یک شارژ کیف پول و یک خرید آزمایشی انجام دهید.</li>
+    <li>با حساب ادمین، شماره‌ی کارت و محصولات را از پنل مدیریت ثبت کنید.</li>
     <li>صفحه‌ی بررسی را باز کنید:</li>
   </ol>
-  <div class="codebox"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://yourdomain.com/SimorghBot/selftest.php</code></div>
-  <p>همه‌ی ردیف‌ها باید ✅ باشند. اگر ردیفی خطا داشت، آن را در بخش <a href="#troubleshoot">عیب‌یابی</a> پیدا کنید.</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://yourdomain.com/SimorghBot/selftest.php</code></div>
+  <p>همه‌ی ردیف‌ها باید ✅ باشند.</p>
 </div>
 
-<div class="step" id="step-6">
+<div class="step">
   <h3><span class="num">۶</span> امنیت بعد از نصب</h3>
-  <ul>
-    <li>فایل <span class="ltr">install.php</span> بعد از نصب قفل می‌شود، با این حال آن را از File Manager حذف کنید.</li>
-    <li>وقتی همه‌چیز را تأیید کردید، فایل <span class="ltr">selftest.php</span> را هم حذف کنید.</li>
-    <li>فایل <span class="ltr">config.php</span> را هرگز برای کسی نفرستید؛ شامل توکن و رمز دیتابیس است.</li>
-  </ul>
-  <div class="danger">اگر <span class="ltr">install.php</span> باقی بماند، هر کسی که آدرس آن را داشته باشد می‌تواند تنظیمات را تغییر دهد.</div>
+  <p>فایل‌های <span class="ltr">install.php</span> و <span class="ltr">selftest.php</span> را از File Manager حذف کنید. فایل <span class="ltr">config.php</span> شامل توکن و رمز دیتابیس است؛ آن را هرگز برای کسی نفرستید.</p>
 </div>
 
-<h2 id="update">به‌روزرسانی</h2>
+<h2>۳. به‌روزرسانی</h2>
 <ul>
-  <li><b>نصب با Git:</b> در Git™ Version Control، روی مخزن نصب‌شده Update from Remote را بزنید.</li>
-  <li><b>نصب با ZIP:</b> پوشه‌ی <span class="ltr">src/</span> و فایل‌های <span class="ltr">*.php</span> جدید را جایگزین کنید. فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> را تغییر ندهید.</li>
+  <li><strong>با Git:</strong> در Git™ Version Control روی مخزن نصب‌شده <strong>Update from Remote</strong> را بزنید.</li>
+  <li><strong>با ZIP:</strong> پوشه‌ی <span class="ltr">src/</span> و فایل‌های <span class="ltr">*.php</span> جدید را جایگزین کنید. فایل‌های <span class="ltr">config.php</span> و <span class="ltr">installed.lock</span> را تغییر ندهید.</li>
 </ul>
-<p class="muted">جدول‌های جدید در صورت نیاز ساخته می‌شوند و اطلاعات قبلی پاک نمی‌شود.</p>
 
-<h2 id="settings">تنظیمات ربات</h2>
-<p>بیشتر تنظیمات از داخل ربات و پنل مدیریت انجام می‌شود، نه از طریق ویرایش فایل‌ها.</p>
-<table>
-  <tr><th>بخش</th><th>محل تنظیم</th></tr>
-  <tr><td>شماره‌ی کارت و صاحب کارت</td><td>پنل مدیریت در ربات</td></tr>
-  <tr><td>محصولات و قیمت‌ها</td><td>پنل مدیریت در ربات</td></tr>
-  <tr><td>تست رایگان</td><td>پنل مدیریت در ربات</td></tr>
-  <tr><td>چیدمان دکمه‌ها</td><td>پنل مدیریت در ربات</td></tr>
-  <tr><td>عضویت اجباری در کانال‌ها</td><td>پنل مدیریت در ربات</td></tr>
-  <tr><td>گزارش‌ها در گروه ادمین</td><td>سوپرگروه با تاپیک که ربات در آن ادمین با دسترسی مدیریت تاپیک باشد</td></tr>
-</table>
-
-<h2 id="troubleshoot">عیب‌یابی</h2>
+<h2>۴. عیب‌یابی</h2>
 <table>
   <tr><th>مشکل</th><th>راه‌حل</th></tr>
-  <tr><td>صفحه‌ی نصب خطای ۵۰۰ می‌دهد</td><td>نسخه‌ی PHP را ۸.۰ یا جدیدتر کنید و افزونه‌ی <span class="ltr">pdo_mysql</span> را فعال کنید.</td></tr>
+  <tr><td>صفحه‌ی نصب خطای ۵۰۰ می‌دهد</td><td>نسخه‌ی PHP را ۸.۰ یا جدیدتر کنید و <span class="ltr">pdo_mysql</span> را فعال کنید.</td></tr>
   <tr><td>اتصال به دیتابیس برقرار نمی‌شود</td><td>نام کامل دیتابیس، کاربر و رمز را بررسی کنید.</td></tr>
-  <tr><td>ربات به <span class="ltr">/start</span> پاسخ نمی‌دهد</td><td>صفحه‌ی <span class="ltr">selftest.php</span> را باز کنید و ردیف «خطای آخر Webhook» را بخوانید.</td></tr>
-  <tr><td>دکمه‌ی مینی‌اپ نمایش داده نمی‌شود</td><td>آدرس باید HTTPS باشد و گواهی SSL دامنه فعال باشد.</td></tr>
-  <tr><td>گزارش‌ها در گروه ثبت نمی‌شوند</td><td>گروه باید سوپرگروه با تاپیک باشد و ربات دسترسی مدیریت تاپیک داشته باشد.</td></tr>
-  <tr><td>مینی‌اپ پیغام «نشست منقضی» می‌دهد</td><td>مینی‌اپ را ببندید و دوباره از داخل ربات باز کنید.</td></tr>
-  <tr><td>آپلود رسید خطا می‌دهد</td><td>فقط عکس تا ۲ مگابایت مجاز است. مقدار <span class="ltr">upload_max_filesize</span> هاست را هم بررسی کنید.</td></tr>
+  <tr><td>ربات به <span class="ltr">/start</span> جواب نمی‌دهد</td><td>صفحه‌ی <span class="ltr">selftest.php</span> را باز کنید و ردیف «خطای آخر Webhook» را بخوانید.</td></tr>
+  <tr><td>دکمه‌ی مینی‌اپ نمی‌آید</td><td>آدرس باید HTTPS باشد.</td></tr>
 </table>
 
-<h2 id="faq">پرسش‌های متداول</h2>
+<h2>۵. پرسش‌های متداول</h2>
 <details>
   <summary>برای نصب به SSH نیاز دارم؟</summary>
-  <p>خیر. تمام مراحل از طریق cPanel و مرورگر انجام می‌شود.</p>
+  <p>خیر. همه‌ی مراحل از cPanel و مرورگر انجام می‌شود.</p>
 </details>
 <details>
-  <summary>آیا می‌توانم بدون SSL ربات را نصب کنم؟</summary>
-  <p>تلگرام فقط آدرس HTTPS را می‌پذیرد، پس گواهی SSL لازم است. در cPanel بخش SSL/TLS Status یا Let's Encrypt را فعال کنید.</p>
-</details>
-<details>
-  <summary>آیا ارسال همگانی برای همه‌ی کاربران کامل انجام می‌شود؟</summary>
-  <p>ارسال با تأخیر کوتاه بین پیام‌ها انجام می‌شود، حدود ۲۵ پیام در ثانیه. اگر تعداد کاربران بسیار زیاد باشد و هاست زمان اجرا را محدود کند، ارسال ممکن است کامل نشود. در این حالت باید صف ارسال با Cron راه‌اندازی شود.</p>
-</details>
-<details>
-  <summary>اطلاعات ادمین را از کجا تغییر دهم؟</summary>
-  <p>از داخل ربات و پنل مدیریت. ویرایش مستقیم فایل <span class="ltr">config.php</span> توصیه نمی‌شود.</p>
+  <summary>آیا بدون SSL کار می‌کند؟</summary>
+  <p>خیر. تلگرام فقط آدرس HTTPS را می‌پذیرد. SSL را در cPanel با Let's Encrypt فعال کنید.</p>
 </details>
 
-<h2 id="support">پشتیبانی</h2>
-<p>اگر در نصب یا اجرای ربات به مشکلی برخوردید، این موارد را همراه پیام خود بفرستید:</p>
-<ul>
-  <li>متن خطا یا عکس صفحه</li>
-  <li>مرحله‌ای که در آن قرار داشتید</li>
-  <li>روش نصب (Git یا ZIP)</li>
-</ul>
-
-<div class="footer">
+<footer>
   <p><a href="https://t.me/SimorghFree">کانال سیمرغ</a> | <a href="https://t.me/SimorghBotGroup">گروه پشتیبانی</a></p>
   <p>سیمرغ همیشه ناظر است</p>
-</div>
+</footer>
 
 </div>
 
@@ -382,7 +243,6 @@ function copyText(btn) {
   try { document.execCommand('copy'); } catch (e) {}
   document.body.removeChild(area);
   done();
-  
 }
 </script>
 </body>

@@ -1,122 +1,471 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl" data-lang="fa">
+<html lang="fa" data-lang="fa">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="SimorghBot documentation — Persian and English installation guides for cPanel hosting and VPS servers.">
-<title>سیمرغ بات | Simorgh Bot — Documentation</title>
-<link rel="stylesheet" href="assets/site.css">
+<meta name="description" content="Simorgh Bot — installation guide for cPanel hosting and VPS servers. Available in Persian, English and Russian.">
+<title>Simorgh Bot — Installation Guide</title>
 <style>
-  /* Language switching: Persian is the default; English appears when data-lang="en". */
-  html[data-lang="fa"] .en { display: none; }
-  html[data-lang="en"] .fa { display: none; }
-  html[data-lang="en"] .site-nav,
-  html[data-lang="en"] .hub-card,
-  html[data-lang="en"] .hero { text-align: left; }
-  .lang-btn {
-    padding: 6px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 14px;
-    cursor: pointer;
+  :root {
+    --bg: #0f1419;
+    --card: #1a222b;
+    --card-2: #141c26;
+    --text: #e6edf3;
+    --muted: #9aa7b4;
+    --accent: #3fb6a8;
+    --warn: #e3b341;
+    --danger: #f85149;
+    --ok: #3fb950;
+    --info: #58a6ff;
+    --code: #0b1016;
+    --border: #2b3640;
   }
-  .lang-btn:hover { border-color: var(--accent); }
-  .ltr-text { direction: ltr; unicode-bidi: embed; font-family: Consolas, "Courier New", monospace; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.85;
+    color: var(--text);
+    background: var(--bg);
+    direction: rtl;
+  }
+  html[data-lang="en"] body,
+  html[data-lang="ru"] body { direction: ltr; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .mono { font-family: Consolas, "Courier New", monospace; direction: ltr; unicode-bidi: embed; }
+
+  /* Language visibility: Persian by default */
+  html[data-lang="fa"] .en, html[data-lang="fa"] .ru,
+  html[data-lang="en"] .fa, html[data-lang="en"] .ru,
+  html[data-lang="ru"] .fa, html[data-lang="ru"] .en { display: none !important; }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px 56px; }
+
+  /* Top bar */
+  .topbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .brand { font-weight: bold; font-size: 18px; color: var(--accent); }
+  .langs { display: flex; gap: 6px; }
+  .langs button {
+    padding: 6px 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card-2); color: var(--text); font-family: inherit; font-size: 14px; cursor: pointer;
+  }
+  .langs button[aria-pressed="true"] { background: var(--accent); color: #04201c; border-color: var(--accent); font-weight: bold; }
+  .links a { margin-inline-start: 12px; font-size: 14px; }
+
+  /* Hero */
+  .hero {
+    margin: 26px 0 18px; padding: 30px 22px; text-align: center;
+    border: 1px solid var(--border); border-radius: 18px;
+    background: linear-gradient(160deg, #14231f, var(--card));
+  }
+  .hero h1 { margin: 0 0 8px; font-size: 28px; color: var(--accent); line-height: 1.5; }
+  .hero p { margin: 6px 0; color: var(--muted); }
+  .badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+  .badge { padding: 4px 12px; border-radius: 999px; background: var(--card-2); border: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+
+  h2 {
+    margin: 36px 0 14px; padding-bottom: 8px; font-size: 22px;
+    border-bottom: 1px solid var(--border); color: var(--accent);
+  }
+  h3 { margin: 6px 0 8px; font-size: 18px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-inline-start: 22px; margin: 8px 0; }
+  li { margin: 6px 0; }
+  .muted { color: var(--muted); }
+
+  /* Cards */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card {
+    display: block; padding: 22px 20px; border-radius: 16px;
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+  }
+  .card:hover { border-color: var(--accent); text-decoration: none; }
+  .card h3 { margin-top: 0; color: var(--accent); font-size: 19px; }
+  .card p { color: var(--muted); font-size: 15px; }
+  .pill { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 8px; background: var(--card-2); border: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+
+  /* Steps */
+  .step {
+    margin: 18px 0; padding: 16px 18px; border-radius: 14px;
+    background: var(--card-2); border: 1px solid var(--border);
+  }
+  .step h3 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 30px; padding: 0 8px; border-radius: 9px;
+    background: var(--accent); color: #04201c; font-weight: bold; font-size: 15px;
+  }
+
+  /* Notices */
+  .notice { padding: 12px 16px; border-radius: 10px; margin: 14px 0; border-inline-start: 4px solid var(--info); background: #0f1f33; }
+  .notice.warn { border-inline-start-color: var(--warn); background: #2a2415; }
+  .notice.danger { border-inline-start-color: var(--danger); background: #2a1716; }
+
+  /* Code blocks */
+  .code { margin: 10px 0; background: var(--code); border: 1px solid var(--border); border-radius: 10px; }
+  .code .bar { display: flex; justify-content: flex-end; padding: 8px 8px 0; }
+  .code button {
+    padding: 4px 12px; border-radius: 8px; border: none; background: var(--accent);
+    color: #04201c; font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+  .code pre {
+    margin: 0; padding: 8px 14px 14px; color: #c9d1d9; direction: ltr; text-align: left;
+    font-family: Consolas, "Courier New", monospace; font-size: 14px; white-space: pre; overflow-x: auto;
+  }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 15px; }
+  th, td { border: 1px solid var(--border); padding: 9px 11px; text-align: start; vertical-align: top; }
+  th { background: #1c232c; color: var(--muted); font-weight: normal; }
+
+  details { margin: 8px 0; padding: 10px 14px; border-radius: 12px; background: var(--card-2); border: 1px solid var(--border); }
+  summary { cursor: pointer; font-weight: bold; }
+
+  footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 14px; }
+  footer a { margin: 0 8px; }
+
+  @media (max-width: 640px) {
+    .cards { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 22px; }
+    .links { width: 100%; }
+    .links a { margin-inline-start: 0; margin-inline-end: 12px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<nav class="site-nav">
-  <strong>💎 Simorgh Bot</strong>
-  <span>
-    <button class="lang-btn" id="langBtn" type="button" aria-label="Switch language">English</button>
+<header class="topbar">
+  <div class="brand">💎 Simorgh Bot</div>
+  <div class="langs" role="group" aria-label="Language">
+    <button type="button" data-set="fa" aria-pressed="true">فارسی</button>
+    <button type="button" data-set="en" aria-pressed="false">English</button>
+    <button type="button" data-set="ru" aria-pressed="false">Русский</button>
+  </div>
+  <div class="links">
     <a href="https://t.me/SimorghFree">Channel</a>
     <a href="https://t.me/SimorghBotGroup">Support</a>
-  </span>
-</nav>
+  </div>
+</header>
 
 <section class="hero">
-  <h1><span class="fa">راهنمای نصب سیمرغ بات</span><span class="en">Simorgh Bot Installation Guide</span></h1>
+  <h1>
+    <span class="fa">راهنمای نصب سیمرغ بات</span>
+    <span class="en">Simorgh Bot Installation Guide</span>
+    <span class="ru">Руководство по установке Simorgh Bot</span>
+  </h1>
   <p>
     <span class="fa">ربات فروشگاه پنل تلگرام با PHP و MySQL</span>
     <span class="en">A Telegram store bot for panel sales, built with PHP and MySQL</span>
+    <span class="ru">Бот-магазин в Telegram для продажи панелей, на PHP и MySQL</span>
   </p>
-  <p class="muted">
-    <span class="fa">نسخه‌ی ۳.۳.۰</span>
-    <span class="en">Version 3.3.0</span>
-  </p>
+  <div class="badges">
+    <span class="badge">v3.3.0</span>
+    <span class="badge">PHP 8.0+</span>
+    <span class="badge">MySQL / MariaDB</span>
+    <span class="badge">Telegram Webhook</span>
+    <span class="badge">SSL</span>
+  </div>
 </section>
 
-<div class="stats">
-  <div class="stat">
-    <b>2</b>
-    <span class="fa">روش نصب</span>
-    <span class="en">installation methods</span>
+<h2>
+  <span class="fa">کدام روش را انتخاب کنم؟</span>
+  <span class="en">Which method should I choose?</span>
+  <span class="ru">Какой способ выбрать?</span>
+</h2>
+
+<div class="cards">
+  <a class="card" href="#cpanel">
+    <h3>🏠
+      <span class="fa">نصب روی هاست cPanel</span>
+      <span class="en">Install on cPanel hosting</span>
+      <span class="ru">Установка на хостинг cPanel</span>
+    </h3>
+    <p>
+      <span class="fa">برای هاست اشتراکی با cPanel. دیتابیس را خودتان می‌سازید و نصب‌کننده‌ی تحت وب را اجرا می‌کنید.</span>
+      <span class="en">For shared hosting with cPanel. You create the database yourself, then run the web installer.</span>
+      <span class="ru">Для общего хостинга с cPanel. Базу данных создаёте сами, затем запускаете веб-установщик.</span>
+    </p>
+    <span class="pill">Git / ZIP → install.php → test</span>
+  </a>
+  <a class="card" href="#server">
+    <h3>🖥️
+      <span class="fa">نصب روی سرور (VPS)</span>
+      <span class="en">Install on a server (VPS)</span>
+      <span class="ru">Установка на сервер (VPS)</span>
+    </h3>
+    <p>
+      <span class="fa">برای سرور مجازی با دسترسی root. یک دستور همه‌چیز را نصب می‌کند و منوی مدیریت <span class="mono">simorgh</span> را می‌سازد.</span>
+      <span class="en">For a VPS with root access. One command installs everything and creates the <span class="mono">simorgh</span> management menu.</span>
+      <span class="ru">Для VPS с правами root. Одна команда устанавливает всё и создаёт меню управления <span class="mono">simorgh</span>.</span>
+    </p>
+    <span class="pill">One command → menu → automatic setup</span>
+  </a>
+</div>
+
+<div class="notice danger">
+  <strong>
+    <span class="fa">توکن ربات را محرمانه نگه دارید.</span>
+    <span class="en">Keep your bot token private.</span>
+    <span class="ru">Храните токен бота в тайне.</span>
+  </strong><br>
+  <span class="fa">توکن را هرگز در گروه، کانال یا پیام عمومی نفرستید. اگر لو رفت، با دستور <span class="mono">/revoke</span> در BotFather آن را عوض کنید.</span>
+  <span class="en">Never post your token in a group, channel or public message. If it leaks, revoke it with <span class="mono">/revoke</span> in BotFather.</span>
+  <span class="ru">Никогда не публикуйте токен в группе, канале или открытом сообщении. Если он утёк, отзовите его командой <span class="mono">/revoke</span> в BotFather.</span>
+</div>
+
+<h2 id="cpanel">
+  <span class="fa">نصب روی هاست cPanel</span>
+  <span class="en">Installation on cPanel hosting</span>
+  <span class="ru">Установка на хостинг cPanel</span>
+</h2>
+
+<div class="step">
+  <h3><span class="num">1</span>
+    <span class="fa">ساخت دیتابیس</span><span class="en">Create the database</span><span class="ru">Создание базы данных</span>
+  </h3>
+  <ol>
+    <li>
+      <span class="fa">در cPanel بخش MySQL® Databases را باز کنید، یک دیتابیس و یک کاربر با رمز قوی بسازید و کاربر را با دسترسی ALL PRIVILEGES به دیتابیس اضافه کنید.</span>
+      <span class="en">In cPanel, open MySQL® Databases, create a database and a user with a strong password, then add the user with ALL PRIVILEGES.</span>
+      <span class="ru">В cPanel откройте MySQL® Databases, создайте базу данных и пользователя с надёжным паролем, затем добавьте пользователя с правами ALL PRIVILEGES.</span>
+    </li>
+    <li>
+      <span class="fa">نام کامل دیتابیس و کاربر را با پیشوند حساب یادداشت کنید، مثلاً <span class="mono">cpuser_SimorghBot</span>.</span>
+      <span class="en">Note the full database and user names, including the account prefix, for example <span class="mono">cpuser_SimorghBot</span>.</span>
+      <span class="ru">Запишите полные имена базы данных и пользователя с префиксом аккаунта, например <span class="mono">cpuser_SimorghBot</span>.</span>
+    </li>
+  </ol>
+</div>
+
+<div class="step">
+  <h3><span class="num">2</span>
+    <span class="fa">ساخت ربات</span><span class="en">Create the bot</span><span class="ru">Создание бота</span>
+  </h3>
+  <ol>
+    <li>
+      <span class="fa">در تلگرام به <span class="mono">@BotFather</span> بروید و دستور <span class="mono">/newbot</span> را بفرستید؛ توکن را کپی کنید.</span>
+      <span class="en">In Telegram, open <span class="mono">@BotFather</span>, send <span class="mono">/newbot</span> and copy the token.</span>
+      <span class="ru">В Telegram откройте <span class="mono">@BotFather</span>, отправьте <span class="mono">/newbot</span> и скопируйте токен.</span>
+    </li>
+    <li>
+      <span class="fa">شناسه‌ی عددی خود را از <span class="mono">@userinfobot</span> بگیرید.</span>
+      <span class="en">Get your numeric ID from <span class="mono">@userinfobot</span>.</span>
+      <span class="ru">Получите свой числовой ID в <span class="mono">@userinfobot</span>.</span>
+    </li>
+  </ol>
+</div>
+
+<div class="step">
+  <h3><span class="num">3</span>
+    <span class="fa">دریافت فایل‌ها</span><span class="en">Get the files</span><span class="ru">Получение файлов</span>
+  </h3>
+  <p>
+    <span class="fa">در cPanel بخش Git™ Version Control را باز کنید و آدرس زیر را با مسیر <span class="mono">public_html/SimorghBot</span> وارد کنید. یا فایل ZIP را از GitHub دانلود کنید، در File Manager آپلود و استخراج کنید.</span>
+    <span class="en">In cPanel, open Git™ Version Control and clone the repository into <span class="mono">public_html/SimorghBot</span>. Or download the ZIP from GitHub, upload it in File Manager and extract it.</span>
+    <span class="ru">В cPanel откройте Git™ Version Control и клонируйте репозиторий в <span class="mono">public_html/SimorghBot</span>. Или скачайте ZIP с GitHub, загрузите его в File Manager и распакуйте.</span>
+  </p>
+  <div class="code">
+    <div class="bar"><button type="button" data-copy>Copy / Копировать / کپی</button></div>
+    <pre>https://github.com/Raven404xv/simorgh-bot.git</pre>
   </div>
-  <div class="stat">
-    <b>PHP 8+</b>
-    <span class="fa">نسخه‌ی موردنیاز</span>
-    <span class="en">required version</span>
+</div>
+
+<div class="step">
+  <h3><span class="num">4</span>
+    <span class="fa">اجرای نصب‌کننده</span><span class="en">Run the installer</span><span class="ru">Запуск установщика</span>
+  </h3>
+  <p>
+    <span class="fa">این آدرس را باز کنید و فرم را کامل کنید: توکن، شناسه‌ی ادمین، نام فروشگاه و اطلاعات دیتابیس.</span>
+    <span class="en">Open this address and complete the form: token, admin ID, store name and database details.</span>
+    <span class="ru">Откройте этот адрес и заполните форму: токен, ID администратора, название магазина и данные базы данных.</span>
+  </p>
+  <div class="code">
+    <div class="bar"><button type="button" data-copy>Copy / Копировать / کپی</button></div>
+    <pre>https://yourdomain.com/SimorghBot/install.php</pre>
   </div>
-  <div class="stat">
-    <b>SSL</b>
-    <span class="fa">برای تلگرام الزامی است</span>
-    <span class="en">required by Telegram</span>
+</div>
+
+<div class="step">
+  <h3><span class="num">5</span>
+    <span class="fa">تست و امنیت</span><span class="en">Test and secure</span><span class="ru">Проверка и безопасность</span>
+  </h3>
+  <ol>
+    <li>
+      <span class="fa">در تلگرام <span class="mono">/start</span> بفرستید و صفحه‌ی بررسی را باز کنید.</span>
+      <span class="en">Send <span class="mono">/start</span> in Telegram and open the check page.</span>
+      <span class="ru">Отправьте <span class="mono">/start</span> в Telegram и откройте страницу проверки.</span>
+    </li>
+    <li>
+      <span class="fa">بعد از اطمینان، فایل‌های <span class="mono">install.php</span> و <span class="mono">selftest.php</span> را حذف کنید.</span>
+      <span class="en">When everything works, delete <span class="mono">install.php</span> and <span class="mono">selftest.php</span>.</span>
+      <span class="ru">Когда всё работает, удалите <span class="mono">install.php</span> и <span class="mono">selftest.php</span>.</span>
+    </li>
+  </ol>
+  <div class="code">
+    <div class="bar"><button type="button" data-copy>Copy / Копировать / کپی</button></div>
+    <pre>https://yourdomain.com/SimorghBot/selftest.php</pre>
   </div>
+</div>
+
+<h2 id="server">
+  <span class="fa">نصب روی سرور (VPS)</span>
+  <span class="en">Installation on a server (VPS)</span>
+  <span class="ru">Установка на сервер (VPS)</span>
+</h2>
+
+<div class="notice">
+  <span class="fa"><strong>پیش‌نیازها:</strong> Ubuntu 22.04 یا جدیدتر، یا Debian 12 یا جدیدتر؛ دسترسی root؛ پورت ۴۴۳ یا ۸۴۴۳ آزاد؛ دامنه‌ی اختیاری با رکورد A به IP سرور.</span>
+  <span class="en"><strong>Requirements:</strong> Ubuntu 22.04+ or Debian 12+; root access; port 443 or 8443 free; optional domain with an A record pointing to the server IP.</span>
+  <span class="ru"><strong>Требования:</strong> Ubuntu 22.04+ или Debian 12+; доступ root; свободный порт 443 или 8443; необязательный домен с записью A на IP сервера.</span>
+</div>
+
+<div class="step">
+  <h3><span class="num">1</span>
+    <span class="fa">اجرای دستور نصب</span><span class="en">Run the install command</span><span class="ru">Запуск команды установки</span>
+  </h3>
+  <p>
+    <span class="fa">با SSH به سرور وصل شوید و این دستور را اجرا کنید. منوی مدیریت باز می‌شود و دستور <span class="mono">simorgh</span> ساخته می‌شود.</span>
+    <span class="en">Connect to the server over SSH and run this command. The management menu opens and the <span class="mono">simorgh</span> command is created.</span>
+    <span class="ru">Подключитесь к серверу по SSH и выполните команду. Откроется меню управления, и появится команда <span class="mono">simorgh</span>.</span>
+  </p>
+  <div class="code">
+    <div class="bar"><button type="button" data-copy>Copy / Копировать / کپی</button></div>
+    <pre>sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raven404xv/simorgh-bot/main/simorgh.sh)"</pre>
+  </div>
+  <p>
+    <span class="fa">از این به بعد فقط این را تایپ کنید:</span>
+    <span class="en">From now on, just type:</span>
+    <span class="ru">Дальше достаточно ввести:</span>
+  </p>
+  <div class="code">
+    <div class="bar"><button type="button" data-copy>Copy / Копировать / کپی</button></div>
+    <pre>simorgh</pre>
+  </div>
+</div>
+
+<div class="step">
+  <h3><span class="num">2</span>
+    <span class="fa">منوی مدیریت</span><span class="en">The management menu</span><span class="ru">Меню управления</span>
+  </h3>
+  <table>
+    <tr>
+      <th><span class="fa">گزینه</span><span class="en">Option</span><span class="ru">Пункт</span></th>
+      <th><span class="fa">کاربرد</span><span class="en">Action</span><span class="ru">Действие</span></th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><span class="fa">نصب ربات</span><span class="en">Install the bot</span><span class="ru">Установка бота</span></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><span class="fa">حذف کامل ربات (با تأیید)</span><span class="en">Remove the bot completely (with confirmation)</span><span class="ru">Полное удаление бота (с подтверждением)</span></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><span class="fa">به‌روزرسانی با پشتیبان‌گیری از تنظیمات</span><span class="en">Update, with a backup of your settings</span><span class="ru">Обновление с резервной копией настроек</span></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><span class="fa">لاگ‌های زنده (Ctrl+C برای بازگشت)</span><span class="en">Live logs (Ctrl+C to return)</span><span class="ru">Логи в реальном времени (Ctrl+C — назад)</span></td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><span class="fa">رفع اتصال تلگرام و نمایش وضعیت وب‌هوک</span><span class="en">Fix the Telegram connection and show webhook status</span><span class="ru">Исправление подключения к Telegram и статус вебхука</span></td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><span class="fa">خروج</span><span class="en">Exit</span><span class="ru">Выход</span></td>
+    </tr>
+  </table>
+</div>
+
+<div class="step">
+  <h3><span class="num">3</span>
+    <span class="fa">نصب از منو</span><span class="en">Install from the menu</span><span class="ru">Установка из меню</span>
+  </h3>
+  <ol>
+    <li>
+      <span class="fa">گزینه‌ی 1 را بزنید. اگر دامنه دارید <span class="mono">y</span> و نام دامنه و ایمیل را وارد کنید؛ اگر ندارید <span class="mono">n</span> بزنید تا روی IP سرور نصب شود.</span>
+      <span class="en">Choose 1. With a domain, answer <span class="mono">y</span> and enter the domain and email. Without one, answer <span class="mono">n</span> to install on the server IP.</span>
+      <span class="ru">Выберите 1. Если есть домен, ответьте <span class="mono">y</span> и введите домен и e-mail; если нет — <span class="mono">n</span>, и установка пойдёт на IP сервера.</span>
+    </li>
+    <li>
+      <span class="fa">پورت و گواهی به‌صورت خودکار انتخاب می‌شوند. Enter را بزنید تا خلاصه‌ی نصب تأیید و نصب شروع شود.</span>
+      <span class="en">The port and certificate are chosen automatically. Press Enter to confirm the summary and start.</span>
+      <span class="ru">Порт и сертификат выбираются автоматически. Нажмите Enter, чтобы подтвердить сводку и начать установку.</span>
+    </li>
+    <li>
+      <span class="fa">پس از نصب، آدرس صفحه‌ی نصب نمایش داده می‌شود. اطلاعات دیتابیس را با <span class="mono">sudo cat /root/simorgh-credentials.txt</span> ببینید و فرم را کامل کنید.</span>
+      <span class="en">When it finishes, the setup address is shown. Get the database details with <span class="mono">sudo cat /root/simorgh-credentials.txt</span> and complete the form.</span>
+      <span class="ru">По завершении показывается адрес страницы установки. Данные базы смотрите командой <span class="mono">sudo cat /root/simorgh-credentials.txt</span> и заполните форму.</span>
+    </li>
+  </ol>
+  <div class="notice warn">
+    <span class="fa">اگر از IP استفاده کردید، مرورگر هشدار گواهی می‌دهد. این طبیعی است: روی Advanced و سپس Proceed بزنید.</span>
+    <span class="en">With an IP address the browser shows a certificate warning. This is expected: click Advanced, then Proceed.</span>
+    <span class="ru">При использовании IP браузер покажет предупреждение о сертификате. Это нормально: нажмите Advanced, затем Proceed.</span>
+  </div>
+</div>
+
+<div class="step">
+  <h3><span class="num">4</span>
+    <span class="fa">اگر ربات جواب نداد</span><span class="en">If the bot does not reply</span><span class="ru">Если бот не отвечает</span>
+  </h3>
+  <p>
+    <span class="fa">منوی <span class="mono">simorgh</span> را باز کنید و گزینه‌ی 5 را بزنید. سپس دوباره <span class="mono">/start</span> بفرستید.</span>
+    <span class="en">Run <span class="mono">simorgh</span>, choose 5, then send <span class="mono">/start</span> again.</span>
+    <span class="ru">Запустите <span class="mono">simorgh</span>, выберите 5, затем снова отправьте <span class="mono">/start</span>.</span>
+  </p>
 </div>
 
 <h2>
-  <span class="fa">کدام راهنما را بخوانم؟</span>
-  <span class="en">Which guide should I read?</span>
+  <span class="fa">پرسش‌های متداول</span>
+  <span class="en">FAQ</span>
+  <span class="ru">Частые вопросы</span>
 </h2>
 
-<div class="hub-grid">
-  <a class="hub-card" href="host/">
-    <h2>🏠 <span class="fa">نصب روی هاست cPanel</span><span class="en">Install on cPanel hosting</span></h2>
-    <p>
-      <span class="fa">برای هاست اشتراکی با cPanel. دیتابیس را خودتان می‌سازید و نصب‌کننده‌ی تحت وب را اجرا می‌کنید.</span>
-      <span class="en">For shared hosting with cPanel. You create the database yourself and run the web installer.</span>
-    </p>
-    <p class="muted">
-      <span class="fa">Git یا ZIP ← install.php ← تست</span>
-      <span class="en">Git or ZIP → install.php → test</span>
-    </p>
-  </a>
+<details>
+  <summary>
+    <span class="fa">آیا برای نصب دامنه لازم است؟</span>
+    <span class="en">Is a domain required?</span>
+    <span class="ru">Нужен ли домен?</span>
+  </summary>
+  <p>
+    <span class="fa">خیر. بدون دامنه ربات روی IP سرور با گواهی خودامضا نصب می‌شود. با دامنه، گواهی معتبر گرفته می‌شود.</span>
+    <span class="en">No. Without a domain the bot runs on the server IP with a self-signed certificate. With a domain, a trusted certificate is issued.</span>
+    <span class="ru">Нет. Без домена бот работает на IP сервера с самоподписанным сертификатом. С доменом выдаётся доверенный сертификат.</span>
+  </p>
+</details>
 
-  <a class="hub-card" href="server/">
-    <h2>🖥️ <span class="fa">نصب روی سرور (VPS)</span><span class="en">Install on a server (VPS)</span></h2>
-    <p>
-      <span class="fa">برای سرور مجازی با دسترسی root. یک دستور نصب می‌کند و منوی مدیریت <span class="ltr-text">simorgh</span> را می‌سازد.</span>
-      <span class="en">For a VPS with root access. One command installs everything and creates the <span class="ltr-text">simorgh</span> management menu.</span>
-    </p>
-    <p class="muted">
-      <span class="fa">یک دستور ← منو ← نصب خودکار</span>
-      <span class="en">One command → menu → automatic setup</span>
-    </p>
-  </a>
-</div>
-
-<div class="note">
-  <strong>
-    <span class="fa">توکن را محرمانه نگه دارید.</span>
-    <span class="en">Keep your token private.</span>
-  </strong>
-  <span class="fa">توکن ربات را هرگز در گروه، کانال یا پیام عمومی نفرستید. اگر لو رفت، با دستور <span class="ltr-text">/revoke</span> در BotFather آن را عوض کنید.</span>
-  <span class="en">Never post your bot token in a group, channel or public message. If it leaks, revoke it with <span class="ltr-text">/revoke</span> in BotFather.</span>
-</div>
+<details>
+  <summary>
+    <span class="fa">آیا پایگاه داده را روی سرور خودم بسازم؟</span>
+    <span class="en">Do I create the database on a VPS?</span>
+    <span class="ru">Нужно ли создавать базу данных на VPS?</span>
+  </summary>
+  <p>
+    <span class="fa">خیر. نصب‌کننده‌ی سرور پایگاه داده و کاربر اختصاصی را خودکار می‌سازد.</span>
+    <span class="en">No. The server installer creates the database and a dedicated user automatically.</span>
+    <span class="ru">Нет. Установщик для сервера автоматически создаёт базу данных и отдельного пользователя.</span>
+  </p>
+</details>
 
 <footer>
   <p>
-    <a href="https://t.me/SimorghFree">Channel: @SimorghFree</a> |
+    <a href="https://t.me/SimorghFree">Channel: @SimorghFree</a> ·
     <a href="https://t.me/SimorghBotGroup">Support: @SimorghBotGroup</a>
   </p>
   <p>
     <span class="fa">سیمرغ همیشه ناظر است</span>
     <span class="en">Simorgh is always watching</span>
+    <span class="ru">Симорг всегда наблюдает</span>
   </p>
 </footer>
 
@@ -125,25 +474,52 @@
 <script>
 (function () {
   var root = document.documentElement;
-  var btn = document.getElementById('langBtn');
-  if (!btn) return;
+  var buttons = document.querySelectorAll('.langs button');
 
   function setLang(lang) {
-    if (lang !== 'fa' && lang !== 'en') lang = 'fa';
+    if (lang !== 'fa' && lang !== 'en' && lang !== 'ru') lang = 'fa';
     root.setAttribute('data-lang', lang);
     root.setAttribute('lang', lang);
-    root.setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
-    btn.textContent = lang === 'fa' ? 'English' : 'فارسی';
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute('aria-pressed', buttons[i].getAttribute('data-set') === lang ? 'true' : 'false');
+    }
     try { localStorage.setItem('simorgh-lang', lang); } catch (e) {}
+  }
+
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener('click', function () {
+      setLang(this.getAttribute('data-set'));
+    });
   }
 
   var saved = null;
   try { saved = localStorage.getItem('simorgh-lang'); } catch (e) {}
   setLang(saved || 'fa');
 
-  btn.addEventListener('click', function () {
-    setLang(root.getAttribute('data-lang') === 'fa' ? 'en' : 'fa');
-  });
+  var copyButtons = document.querySelectorAll('[data-copy]');
+  for (var j = 0; j < copyButtons.length; j++) {
+    copyButtons[j].addEventListener('click', function () {
+      var btn = this;
+      var pre = btn.parentNode.parentNode.querySelector('pre');
+      var text = pre ? pre.textContent : '';
+      var original = btn.textContent;
+      var done = function () {
+        btn.textContent = '✓';
+        setTimeout(function () { btn.textContent = original; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, done);
+      } else {
+        var area = document.createElement('textarea');
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(area);
+        done();
+      }
+    });
+  }
 })();
 </script>
 </body>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>راهنمای نصب سیمرغ بات روی سرور (VPS)</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --card: #1a222b;
+    --text: #e6edf3;
+    --muted: #9aa7b4;
+    --accent: #3fb6a8;
+    --warn: #e3b341;
+    --danger: #f85149;
+    --ok: #3fb950;
+    --code: #0b1016;
+    --border: #2b3640;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Tahoma, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.9;
+    font-size: 16px;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  .nav { font-size: 14px; margin-bottom: 14px; color: var(--muted); }
+  header {
+    text-align: center;
+    padding: 28px 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: #14231f;
+    margin-bottom: 24px;
+  }
+  header h1 { margin: 0 0 6px; font-size: 26px; color: var(--accent); }
+  header p { margin: 4px 0; color: var(--muted); }
+
+  h2 {
+    font-size: 20px;
+    margin: 32px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    color: var(--accent);
+  }
+  h3 { font-size: 17px; margin: 18px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-right: 22px; margin: 8px 0; }
+  li { margin: 6px 0; }
+  .ltr { direction: ltr; unicode-bidi: embed; font-family: Consolas, "Courier New", monospace; }
+  .muted { color: var(--muted); }
+
+  .notice { border-right: 4px solid var(--warn); background: #2a2415; padding: 12px 16px; border-radius: 10px; margin: 14px 0; }
+  .notice.danger { border-right-color: var(--danger); background: #2a1716; }
+  .notice.ok { border-right-color: var(--ok); background: #14261b; }
+
+  .code-block { margin: 10px 0; background: var(--code); border: 1px solid var(--border); border-radius: 10px; }
+  .code-block .bar { padding: 8px 8px 0; }
+  .code-block button {
+    padding: 4px 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #04201c;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .code-block code {
+    display: block;
+    direction: ltr;
+    text-align: left;
+    padding: 8px 14px 14px;
+    color: #c9d1d9;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: right; vertical-align: top; }
+  th { background: #222c36; font-weight: normal; color: var(--muted); }
+
+  .step { margin: 22px 0; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+  .step h3 { margin-top: 0; color: var(--accent); }
+  .num {
+    display: inline-block;
+    min-width: 28px;
+    text-align: center;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #04201c;
+    font-weight: bold;
+  }
+
+  details { margin: 8px 0; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+  summary { cursor: pointer; font-weight: bold; }
+
+  footer { text-align: center; color: var(--muted); margin-top: 40px; font-size: 14px; border-top: 1px solid var(--border); padding-top: 16px; }
+  footer a { margin: 0 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="nav"><a href="../">← راهنمای نصب روی هاست cPanel</a></div>
+
+<header>
+  <h1>💎 نصب سیمرغ بات روی سرور (VPS)</h1>
+  <p>نصب کامل با یک دستور و یک منوی مدیریتی</p>
+  <p>نسخه‌ی ۳.۳.۰</p>
+</header>
+
+<div class="notice danger">
+  <strong>توکن ربات را محرمانه نگه دارید.</strong> توکن را هرگز در گروه، کانال یا پیام عمومی نفرستید. اگر لو رفت، با دستور <span class="ltr">/revoke</span> در <span class="ltr">@BotFather</span> آن را عوض کنید و در منوی نصب، گزینه‌ی ۵ را اجرا کنید.
+</div>
+
+<h2>۱. پیش‌نیازها</h2>
+<table>
+  <tr><th>مورد</th><th>الزام</th></tr>
+  <tr><td>سیستم‌عامل</td><td>Ubuntu 22.04 یا جدیدتر، یا Debian 12 یا جدیدتر. سرور تازه توصیه می‌شود.</td></tr>
+  <tr><td>دسترسی</td><td>کاربر <span class="ltr">root</span> یا کاربری با <span class="ltr">sudo</span></td></tr>
+  <tr><td>پورت‌ها</td><td>پورت <span class="ltr">443</span> یا <span class="ltr">8443</span> آزاد باشد. نصب‌کننده خودش پورت مناسب را پیشنهاد می‌دهد.</td></tr>
+  <tr><td>دامنه (اختیاری)</td><td>رکورد <span class="ltr">A</span> دامنه باید به IP سرور اشاره کند. با دامنه، گواهی معتبر گرفته می‌شود.</td></tr>
+  <tr><td>توکن و شناسه</td><td>توکن از <span class="ltr">@BotFather</span> و شناسه‌ی عددی از <span class="ltr">@userinfobot</span></td></tr>
+</table>
+
+<h2>۲. نصب نصب‌کننده</h2>
+
+<div class="step">
+  <h3><span class="num">۱</span> اتصال به سرور</h3>
+  <p>با SSH به سرور وصل شوید؛ با PuTTY، Bitvise یا ترمینال سیستم‌عامل خودتان.</p>
+</div>
+
+<div class="step">
+  <h3><span class="num">۲</span> اجرای دستور نصب</h3>
+  <p>این دستور را کپی کنید و در ترمینال سرور بزنید:</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raven404xv/simorgh-bot/main/simorgh.sh)"</code></div>
+  <p>این دستور منوی مدیریت را باز می‌کند و یک دستور کوتاه با نام <span class="ltr">simorgh</span> روی سرور می‌سازد. از این به بعد فقط همین را تایپ کنید:</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>simorgh</code></div>
+</div>
+
+<h2>۳. منوی مدیریت</h2>
+<table>
+  <tr><th>گزینه</th><th>کاربرد</th></tr>
+  <tr><td>۱</td><td>نصب ربات</td></tr>
+  <tr><td>۲</td><td>حذف کامل ربات (با تأیید شما)</td></tr>
+  <tr><td>۳</td><td>به‌روزرسانی ربات، با نسخه‌ی جدید و پشتیبان‌گیری از تنظیمات</td></tr>
+  <tr><td>۴</td><td>نمایش زنده‌ی لاگ‌ها؛ با Ctrl+C به منو برمی‌گردید</td></tr>
+  <tr><td>۵</td><td>رفع اتصال تلگرام و نمایش وضعیت وب‌هوک</td></tr>
+  <tr><td>۶</td><td>خروج</td></tr>
+</table>
+
+<h2>۴. نصب ربات از منو (گزینه‌ی ۱)</h2>
+
+<div class="step">
+  <h3><span class="num">۱</span> پرسش دامنه</h3>
+  <ul>
+    <li><strong>اگر دامنه دارید:</strong> <span class="ltr">y</span> بزنید و دامنه را وارد کنید، مثلاً <span class="ltr">bot.example.com</span>. نصب‌کننده بررسی می‌کند که دامنه به همین سرور اشاره کند، سپس ایمیل را می‌پرسد.</li>
+    <li><strong>اگر دامنه ندارید:</strong> <span class="ltr">n</span> بزنید. ربات روی IP سرور با گواهی خودامضا نصب می‌شود. مرورگر هشدار می‌دهد که طبیعی است.</li>
+  </ul>
+</div>
+
+<div class="step">
+  <h3><span class="num">۲</span> پورت و گواهی</h3>
+  <ul>
+    <li>اگر پورت ۸۰ آزاد باشد و دامنه دارید، نصب‌کننده می‌پرسد که از آن برای تأیید گواهی استفاده شود یا نه. با Enter بله است و گواهی خودکار تمدید می‌شود.</li>
+    <li>اگر پورت ۸۰ مشغول باشد، گواهی با DNS تأیید می‌شود. با Cloudflare تمدید خودکار است؛ با سایر ارائه‌دهندگان DNS باید هر ۹۰ روز دستی تمدید شود.</li>
+    <li>پورت HTTPS را می‌توانید خودتان وارد کنید. تلگرام فقط پورت‌های <span class="ltr">80، 88، 443 و 8443</span> را برای وب‌هوک می‌پذیرد.</li>
+  </ul>
+</div>
+
+<div class="step">
+  <h3><span class="num">۳</span> فایروال و خلاصه‌ی نصب</h3>
+  <p>اگر <span class="ltr">ufw</span> فعال باشد و پورت لازم بسته باشد، نصب‌کننده اجازه می‌خواهد آن را باز کند. سپس خلاصه‌ی نصب نشان داده می‌شود؛ با Enter نصب شروع می‌شود.</p>
+  <div class="notice ok">فایروال ابری (پنل VPS) از داخل سرور دیده نمی‌شود. اگر پورت از اینترنت بسته باشد، آن را در پنل ارائه‌دهنده‌ی سرور هم باز کنید.</div>
+</div>
+
+<div class="step">
+  <h3><span class="num">۴</span> نصب خودکار</h3>
+  <p>نرم‌افزارهای لازم، پایگاه داده (MariaDB) با یک کاربر اختصاصی، گواهی، فایل‌های ربات و تنظیمات Apache به‌صورت خودکار نصب می‌شوند. این مرحله چند دقیقه طول می‌کشد.</p>
+</div>
+
+<h2>۵. تکمیل نصب در مرورگر</h2>
+
+<div class="step">
+  <h3><span class="num">۱</span> باز کردن صفحه‌ی نصب</h3>
+  <p>در پایان، منو آدرسی مثل این نشان می‌دهد:</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://bot.example.com/install.php</code></div>
+  <p>یا بدون دامنه:</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://203.0.113.10:8443/install.php</code></div>
+  <p>در حالت خودامضا، روی <strong>Advanced</strong> و سپس <strong>Proceed</strong> بزنید.</p>
+</div>
+
+<div class="step">
+  <h3><span class="num">۲</span> اطلاعات دیتابیس</h3>
+  <p>اطلاعات دیتابیس در ترمینال نمایش داده می‌شود و در فایل زیر ذخیره شده است. این فایل فقط برای <span class="ltr">root</span> قابل خواندن است:</p>
+  <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>sudo cat /root/simorgh-credentials.txt</code></div>
+  <p class="muted">اگر دامنه و ایمیل داده باشید، همین اطلاعات به ایمیل شما هم ارسال می‌شود.</p>
+</div>
+
+<div class="step">
+  <h3><span class="num">۳</span> فرم را کامل کنید</h3>
+  <p>توکن ربات، شناسه‌ی عددی ادمین، نام فروشگاه، و اطلاعات دیتابیس را وارد کنید، سپس ذخیره کنید.</p>
+</div>
+
+<h2>۶. تست ربات</h2>
+<ol>
+  <li>در تلگرام به ربات بروید و <span class="ltr">/start</span> بفرستید.</li>
+  <li>اگر ربات جواب نداد، در منو گزینه‌ی <strong>۵</strong> را اجرا کنید.</li>
+  <li>صفحه‌ی بررسی را باز کنید؛ همه‌ی ردیف‌ها باید ✅ باشند:
+    <div class="code-block"><div class="bar"><button type="button" onclick="copyText(this)">کپی</button></div><code>https://your-address/selftest.php</code></div>
+  </li>
+</ol>
+
+<h2>۷. مشاهده‌ی لاگ‌ها</h2>
+<p>در منو گزینه‌ی <strong>۴</strong> را بزنید تا لاگ‌ها زنده نمایش داده شوند. برای برگشت به منو Ctrl+C بزنید.</p>
+<table>
+  <tr><th>فایل</th><th>محتوا</th></tr>
+  <tr><td><span class="ltr">/var/log/simorgh-manager.log</span></td><td>گزارش خود نصب‌کننده</td></tr>
+  <tr><td><span class="ltr">/var/log/apache2/simorgh-bot-ssl-error.log</span></td><td>خطاهای وب‌سرور و برنامه</td></tr>
+</table>
+
+<h2>۸. به‌روزرسانی</h2>
+<p>در منو گزینه‌ی <strong>۳</strong> را بزنید. اگر نسخه‌ی جدیدی باشد، به‌روز می‌شود و پیش از آن از تنظیمات شما نسخه‌ی پشتیبان گرفته می‌شود. اگر نباشد، پیام «به‌روز است» نمایش داده می‌شود.</p>
+
+<h2>۹. رفع اتصال تلگرام</h2>
+<p>اگر ربات به پیام‌ها جواب نمی‌دهد، در منو گزینه‌ی <strong>۵</strong> را بزنید. این گزینه تنظیمات را از <span class="ltr">config.php</span> می‌خواند، وب‌هوک را دوباره ثبت می‌کند (با گواهی در صورت نیاز) و وضعیت را نشان می‌دهد؛ بدون اینکه توکن را چاپ کند.</p>
+
+<h2>۱۰. حذف ربات</h2>
+<p>در منو گزینه‌ی <strong>۲</strong> را بزنید. قبل از حذف، سؤال تأیید پرسیده می‌شود: <span class="ltr">y</span> یعنی حذف کامل، <span class="ltr">n</span> یعنی بازگشت به منو. با حذف، فایل‌های ربات، تنظیمات وب‌سرور، گواهی، پایگاه داده‌ی ساخته‌شده توسط نصب‌کننده و فایل‌های تنظیمات حذف می‌شوند.</p>
+
+<h2>۱۱. امنیت بعد از نصب</h2>
+<ul>
+  <li>بعد از تأیید کار ربات، فایل‌های <span class="ltr">install.php</span> و <span class="ltr">selftest.php</span> را حذف کنید.</li>
+  <li>فایل <span class="ltr">/root/simorgh-credentials.txt</span> را پس از یادداشت‌برداری، از سرور حذف یا جابه‌جا کنید.</li>
+  <li>هیچ‌وقت فایل <span class="ltr">config.php</span> یا توکن را برای کسی نفرستید.</li>
+  <li>سرور را به‌روز نگه دارید و فقط پورت‌های لازم را باز بگذارید.</li>
+</ul>
+
+<h2>۱۲. رفع مشکلات رایج</h2>
+<table>
+  <tr><th>مشکل</th><th>راه‌حل</th></tr>
+  <tr><td>دستور نصب خطای اتصال می‌دهد</td><td>اتصال اینترنت سرور را بررسی کنید و دستور را دوباره اجرا کنید.</td></tr>
+  <tr><td>صفحه‌ی نصب خطای ۵۰۰ می‌دهد</td><td>گزینه‌ی ۳ (به‌روزرسانی) را بزنید؛ اگر ادامه داشت، گزینه‌ی ۴ را بررسی کنید.</td></tr>
+  <tr><td>ربات به <span class="ltr">/start</span> جواب نمی‌دهد</td><td>گزینه‌ی ۵ را بزنید و بعد دوباره <span class="ltr">/start</span> بفرستید.</td></tr>
+  <tr><td>مرورگر هشدار گواهی می‌دهد</td><td>برای IP طبیعی است. با دامنه، گواهی معتبر خواهید داشت.</td></tr>
+  <tr><td>ایمیل نرسید</td><td>پوشه‌ی اسپم را بررسی کنید و اطلاعات را از <span class="ltr">/root/simorgh-credentials.txt</span> بخوانید.</td></tr>
+  <tr><td>پورت مشغول است</td><td>نصب‌کننده پورت دیگری پیشنهاد می‌دهد. سرویس‌های دیگر سرور را متوقف نکنید مگر مطمئن باشید.</td></tr>
+</table>
+
+<h2>۱۳. پرسش‌های متداول</h2>
+<details>
+  <summary>آیا برای نصب به دامنه نیاز دارم؟</summary>
+  <p>خیر. بدون دامنه هم می‌توانید نصب کنید، اما گواهی خودامضا است و مرورگر هشدار می‌دهد.</p>
+</details>
+<details>
+  <summary>آیا پایگاه داده را خودم بسازم؟</summary>
+  <p>خیر. روی سرور مجازی نصب‌کننده همه‌چیز را خودکار می‌سازد.</p>
+</details>
+<details>
+  <summary>آیا با حذف ربات، سرور هم تمیز می‌شود؟</summary>
+  <p>ربات، تنظیمات، گواهی و پایگاه داده‌ی ساخته‌شده توسط نصب‌کننده حذف می‌شوند. نرم‌افزارهای عمومی مثل Apache یا PHP حذف نمی‌شوند.</p>
+</details>
+
+<footer>
+  <p><a href="https://t.me/SimorghFree">کانال سیمرغ</a> | <a href="https://t.me/SimorghBotGroup">گروه پشتیبانی</a></p>
+  <p>سیمرغ همیشه ناظر است</p>
+</footer>
+
+</div>
+
+<script>
+function copyText(btn) {
+  var box = btn.parentNode.parentNode;
+  var code = box.getElementsByTagName('code')[0];
+  var text = code ? code.textContent : '';
+  var done = function () {
+    btn.textContent = 'کپی شد';
+    setTimeout(function () { btn.textContent = 'کپی'; }, 1500);
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, done);
+      return;
+    }
+  } catch (e) {}
+  var area = document.createElement('textarea');
+  area.value = text;
+  document.body.appendChild(area);
+  area.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(area);
+  done();
+}
+</script>
+</body>
+</html>

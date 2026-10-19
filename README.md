@@ -1,5 +1,6 @@
 <div align="center">
 
+
 # 💎 SimorghBot
 
 A powerful Telegram store bot for selling panels, with fully automated setup on cPanel hosting.

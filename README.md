@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Raven404xv/simorgh-bot/main/docs/logo-512.png" alt="SimorghBot logo" width="140">
-
 # 💎 SimorghBot
 
 A powerful Telegram store bot for selling panels, with fully automated setup on cPanel hosting.
